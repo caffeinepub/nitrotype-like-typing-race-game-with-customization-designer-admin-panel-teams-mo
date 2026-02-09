@@ -1,0 +1,112 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-09T19:15:35.446Z",
+  "summary": "Diff implements major scaffolding for TRP Coins labeling, race completion credit flow, admin TRP grant UI/command parsing, teams listing/creation UI, and a new System page with Secret Holidays CRUD hooks/UI plus backend state/migration additions. However, some acceptance criteria are not evidenced (notably atomic race-complete API behavior, team membership management, correct team cost, and backend authorization enforcement for admin-only operations).",
+  "missing_requirements": [
+    {
+      "id": "REQ-2",
+      "requirement": "Race completion should be a single backend call that persists race performance, updates best performance/leaderboards, and atomically credits TRP Coins, returning awarded amount and resulting balance, with clear rejection if no profile/unauthorized.",
+      "reason": "Frontend flow still indicates separate calls for saving race performance and then calling completeRace, so the required atomic all-in-one backend operation is not evidenced; backend completeRace implementation/authorization checks are not visible in the truncated backend diff.",
+      "evidence": [
+        "frontend/src/pages/RacePage.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/hooks/useEconomy.ts",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "Teams backend must support create/list/details and join/leave with a hard 100 member limit; creating a team must deduct exactly 50,000 TRP Coins and fail on insufficient balance.",
+      "reason": "Diff shows team types/state and frontend create/list/details hooks, but does not evidence join/leave APIs or enforcement of 100-member join limit. Additionally, backend constant shows TEAM_CREATE_COST = 50_000_000, which does not match the specified 50,000 TRP Coins cost.",
+      "evidence": [
+        "backend/main.mo",
+        "backend/migration.mo",
+        "frontend/src/hooks/useTeams.ts"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "requirement": "Teams UI must include join/leave actions that update UI and handle backend errors such as 'team full' at 100 members.",
+      "reason": "TeamsPage implements listing and create-team flow with cost messaging, but no join/leave hooks are present in useTeams.ts, and TeamDetailsPage truncation does not evidence join/leave actions or error handling for team-full.",
+      "evidence": [
+        "frontend/src/hooks/useTeams.ts",
+        "frontend/src/pages/TeamsPage.tsx",
+        "frontend/src/pages/TeamDetailsPage.tsx"
+      ]
+    },
+    {
+      "id": "REQ-1",
+      "requirement": "Backend-enforced award of 900–1000 TRP Coins for completed non-practice races (0 for practice, no balance change), and Race Results must display earned and balance with 'TRP Coins' label.",
+      "reason": "UI labeling for TRP Coins is evidenced, but the backend enforcement of award range and practice-mode no-change cannot be confirmed from the truncated backend diff; frontend only conditionally calls completeRace for non-practice, which does not prove backend enforcement.",
+      "evidence": [
+        "frontend/src/pages/RaceResultsPage.tsx",
+        "frontend/src/pages/RacePage.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "requirement": "Admin-only backend method to grant arbitrary TRP Coins; non-admins must be rejected; admin UI/command flow must clearly grant TRP Coins.",
+      "reason": "Admin UI and command parsing are implemented, but backend-side admin-only authorization enforcement for adminGrantTrpCoins is not evidenced in the truncated backend diff.",
+      "evidence": [
+        "frontend/src/hooks/useEconomy.ts",
+        "frontend/src/pages/admin/AdminEconomyToolsPage.tsx",
+        "frontend/src/lib/adminCommandParser.ts",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "requirement": "Secret Holidays must be admin-managed via backend-backed controls; non-admin users cannot add/remove; backend persists and exposes read APIs for all and admin-only management APIs.",
+      "reason": "System page UI shows add/remove controls gated by useIsAdmin, and hooks call addHoliday/removeHoliday/getHolidays, but backend admin-only enforcement and persistence semantics are not evidenced in the truncated backend diff (only state/migration types are shown).",
+      "evidence": [
+        "frontend/src/pages/SystemPage.tsx",
+        "frontend/src/hooks/useHolidays.ts",
+        "backend/main.mo",
+        "backend/migration.mo"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Admin audit log component and related UI integration",
+      "reason": "BuildRequest does not ask for audit logging of admin commands; diff summary references an AdminAuditLog component.",
+      "evidence": [
+        "frontend/src/pages/admin/AdminUpdateAssistantPage.tsx",
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Rule-based natural language admin command parser supporting actions beyond TRP grants (e.g., title creation, MOTD updates, add text)",
+      "reason": "BuildRequest only requires TRP Coins grant support in the admin command flow; additional command types are not requested.",
+      "evidence": [
+        "frontend/src/lib/adminCommandParser.ts"
+      ]
+    }
+  ],
+  "confidence": 0.74,
+  "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/App.tsx",
+    "frontend/src/components/layout/AppLayout.tsx",
+    "frontend/src/hooks/useEconomy.ts",
+    "frontend/src/hooks/useHolidays.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useTeams.ts",
+    "frontend/src/lib/adminCommandParser.ts",
+    "frontend/src/lib/raceMetrics.ts",
+    "frontend/src/pages/DashboardPage.tsx",
+    "frontend/src/pages/ProfilePage.tsx",
+    "frontend/src/pages/RacePage.tsx",
+    "frontend/src/pages/RaceResultsPage.tsx",
+    "frontend/src/pages/SystemPage.tsx",
+    "frontend/src/pages/TeamDetailsPage.tsx",
+    "frontend/src/pages/TeamsPage.tsx",
+    "frontend/src/pages/admin/AdminEconomyToolsPage.tsx",
+    "frontend/src/pages/admin/AdminUpdateAssistantPage.tsx",
+    "project_state.json"
+  ]
+}

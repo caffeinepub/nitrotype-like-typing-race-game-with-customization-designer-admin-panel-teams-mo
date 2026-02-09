@@ -1,2 +1,3 @@
-# nitrotype-like-typing-race-game-with-customization-designer-admin-panel-teams-mo
-Exported from Caffeine project: Add race tracking and 3-category leaderboards (speed, accuracy, combined)
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`

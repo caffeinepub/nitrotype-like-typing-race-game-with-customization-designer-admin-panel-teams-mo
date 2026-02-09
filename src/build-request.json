@@ -1,0 +1,148 @@
+{
+  "kind": "build_request",
+  "title": "Add TRP Coins rewards, teams with TRP cost/member limit, and admin-managed Seasons/System tab",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Implement TRP Coins as the in-app currency name and award 900–1000 TRP Coins at the end of each completed non-practice race, shown on the Race Results scoreboard.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "I want a currency where when you race at the end you see a score board where you can gain 900-1000 acoints and the coines is called trp coins"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Race Results UI uses the label \"TRP Coins\" (not generic \"Currency\") for earned and balance displays.",
+        "For non-practice races, the awarded amount displayed on Race Results is an integer within [900, 1000].",
+        "For practice races, awarded TRP Coins is 0 and the user balance is not changed.",
+        "Awarding TRP Coins is enforced by the backend (frontend cannot directly change balance)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Add backend support to credit TRP Coins to the caller’s profile balance when a non-practice race is completed, and return the awarded amount to the frontend as part of the race completion flow.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "when you race at the end you see a score board where you can gain 900-1000 acoints"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A new or updated backend API exists that the frontend can call after a race completes to (a) persist the race performance, (b) update best performance/leaderboards, and (c) atomically credit TRP Coins to the caller’s profile balance.",
+        "The backend updates the stored UserProfile.balance by the awarded TRP Coins amount for non-practice races.",
+        "The backend returns (at minimum) the awarded TRP Coins amount and the caller’s resulting balance (or enough information for the frontend to refresh and display it).",
+        "If the caller does not have a profile or is not authorized as a user, the backend rejects the operation with a clear error."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Add admin capabilities to grant an arbitrary amount of TRP Coins (including very large amounts) and expose this via an admin UI and/or existing admin command flow.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "admins get as much as they want"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend provides an admin-only method to grant TRP Coins to a specified user (including self).",
+        "Non-admin callers cannot grant TRP Coins and receive an authorization error.",
+        "Admin UI provides a way to input a Principal and an amount, execute the grant, and show success/error feedback.",
+        "If the existing admin command assistant is used for currency grants, it supports a command form that clearly grants TRP Coins (and the UI labels it as TRP Coins)."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Implement Teams in the backend with: team creation costing 50,000 TRP Coins, a hard limit of 100 members per team, and membership management APIs for listing teams and viewing team details.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "For the teams add a place where you can make a team for 50000 trp which in the team there is a limit of 100 people."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend exposes APIs to: create a team (name required), list teams, get team details by id, and join/leave a team (or equivalent membership management).",
+        "Creating a team deducts exactly 50,000 TRP Coins from the creator’s UserProfile.balance in the same call that creates the team.",
+        "If the caller has insufficient TRP Coins, team creation fails with an \"Insufficient balance\"-style error.",
+        "A team cannot exceed 100 members; joining fails once the limit is reached.",
+        "Team details include at minimum: team id, name, owner, member count, and member principals (or enough info to display a member list)."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Replace the placeholder Teams pages with real UI backed by the backend teams APIs, including a create-team flow showing the 50,000 TRP Coins cost and enforcing the 100-member limit in the UI.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "add a place where you can make a team for 50000 trp ... limit of 100 people"
+        ]
+      },
+      "acceptanceCriteria": [
+        "/teams shows a list of teams from the backend (loading/empty/error states handled).",
+        "/teams provides a create-team UI (dialog or inline form) that clearly states the cost: \"50,000 TRP Coins\".",
+        "After successful creation, the new team appears in the list without a full page refresh (React Query invalidation/refetch is acceptable).",
+        "/teams/$teamId shows team details and member list from the backend.",
+        "Team join/leave (or equivalent) actions update the UI and respect backend errors (including \"team full\" when at 100 members)."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Add a new \"System\" tab/page in the main navigation with sections for Winter, Spring, Summer, and a \"Secret Holidays\" area; Secret Holidays must be admin-managed (add/remove) via backend-backed admin controls.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Add a system tab which is the winter summer spring and other secret holiday which can be adding a managed by the admins"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The main authenticated navigation includes a link labeled \"System\" that routes to a new page.",
+        "The System page displays Winter, Spring, and Summer as visible sections/tabs.",
+        "The System page displays a \"Secret Holidays\" section listing items from the backend.",
+        "Admins can add a new Secret Holiday via UI on the System page (or an admin-only control within it), and non-admin users cannot add/remove Secret Holidays.",
+        "Backend persists Secret Holidays and exposes query APIs for all users to read them and admin-only APIs to manage them."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single Motoko actor with all logic in backend/main.mo; only add backend/migration.mo changes if needed for state upgrades.",
+    "Do not edit any files under frontend/src/components/ui or any paths listed in frontend.immutablePaths (compose them instead).",
+    "All user-facing text must be in English."
+  ],
+  "nonGoals": [
+    "Implementing purchasable shop items priced in TRP Coins (beyond team creation cost).",
+    "Real-time team chat or real-time race multiplayer.",
+    "Third-party authentication providers (only Internet Identity remains supported)."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

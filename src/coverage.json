@@ -1,0 +1,132 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-09T19:15:35.449Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 6,
+    "implemented": 4,
+    "items": [
+      {
+        "id": "REQ-1",
+        "summary": "Implement TRP Coins as the in-app currency name and award 900–1000 TRP Coins at the end of each completed non-practice race, shown on the Race Results scoreboard.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/RacePage.tsx",
+          "frontend/src/pages/RaceResultsPage.tsx",
+          "frontend/src/lib/raceMetrics.ts",
+          "frontend/src/pages/ProfilePage.tsx",
+          "frontend/src/pages/DashboardPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/RacePage.tsx",
+          "frontend/src/pages/RaceResultsPage.tsx",
+          "frontend/src/lib/raceMetrics.ts",
+          "frontend/src/pages/ProfilePage.tsx",
+          "frontend/src/pages/DashboardPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Add backend support to credit TRP Coins to the caller’s profile balance when a non-practice race is completed, and return the awarded amount to the frontend as part of the race completion flow.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Add admin capabilities to grant an arbitrary amount of TRP Coins (including very large amounts) and expose this via an admin UI and/or existing admin command flow.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useEconomy.ts",
+          "frontend/src/pages/admin/AdminEconomyToolsPage.tsx",
+          "frontend/src/lib/adminCommandParser.ts",
+          "frontend/src/pages/admin/AdminUpdateAssistantPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useEconomy.ts",
+          "frontend/src/pages/admin/AdminEconomyToolsPage.tsx",
+          "frontend/src/lib/adminCommandParser.ts",
+          "frontend/src/pages/admin/AdminUpdateAssistantPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Implement Teams in the backend with: team creation costing 50,000 TRP Coins, a hard limit of 100 members per team, and membership management APIs for listing teams and viewing team details.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Replace the placeholder Teams pages with real UI backed by the backend teams APIs, including a create-team flow showing the 50,000 TRP Coins cost and enforcing the 100-member limit in the UI.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useTeams.ts",
+          "frontend/src/pages/TeamsPage.tsx",
+          "frontend/src/pages/TeamDetailsPage.tsx",
+          "frontend/src/backend.d.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useTeams.ts",
+          "frontend/src/pages/TeamsPage.tsx",
+          "frontend/src/pages/TeamDetailsPage.tsx",
+          "frontend/src/backend.d.ts"
+        ]
+      },
+      {
+        "id": "REQ-6",
+        "summary": "Add a new \"System\" tab/page in the main navigation with sections for Winter, Spring, Summer, and a \"Secret Holidays\" area; Secret Holidays must be admin-managed (add/remove) via backend-backed admin controls.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/SystemPage.tsx",
+          "frontend/src/hooks/useHolidays.ts",
+          "frontend/src/App.tsx",
+          "frontend/src/components/layout/AppLayout.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/SystemPage.tsx",
+          "frontend/src/hooks/useHolidays.ts",
+          "frontend/src/App.tsx",
+          "frontend/src/components/layout/AppLayout.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/layout/AppLayout.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useEconomy.ts",
+    "frontend/src/hooks/useHolidays.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useTeams.ts",
+    "frontend/src/lib/adminCommandParser.ts",
+    "frontend/src/lib/raceMetrics.ts",
+    "frontend/src/pages/DashboardPage.tsx",
+    "frontend/src/pages/ProfilePage.tsx",
+    "frontend/src/pages/RacePage.tsx",
+    "frontend/src/pages/RaceResultsPage.tsx",
+    "frontend/src/pages/SystemPage.tsx",
+    "frontend/src/pages/TeamDetailsPage.tsx",
+    "frontend/src/pages/TeamsPage.tsx",
+    "frontend/src/pages/admin/AdminEconomyToolsPage.tsx",
+    "frontend/src/pages/admin/AdminUpdateAssistantPage.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}
