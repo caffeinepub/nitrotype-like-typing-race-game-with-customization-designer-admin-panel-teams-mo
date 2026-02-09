@@ -1,10 +1,13 @@
-import { Car } from 'lucide-react';
+import TrackCarMarker from './TrackCarMarker';
+import { CarColor } from '../../backend';
 
 interface TrackVisualizationProps {
   playerProgress: number;
   opponentProgress?: number[];
   opponentNames?: string[];
   mode: 'solo' | 'ghost';
+  playerCarModel?: string;
+  playerCarColor?: CarColor;
 }
 
 export default function TrackVisualization({
@@ -12,6 +15,8 @@ export default function TrackVisualization({
   opponentProgress = [],
   opponentNames = [],
   mode,
+  playerCarModel = 'Default Racer',
+  playerCarColor = CarColor.blue,
 }: TrackVisualizationProps) {
   const lanes = mode === 'solo' ? 1 : Math.max(1, opponentProgress.length + 1);
 
@@ -26,35 +31,41 @@ export default function TrackVisualization({
       <div className="relative">
         <div className="h-12 bg-background border-2 border-primary/30 rounded-lg relative overflow-hidden">
           <div className="absolute inset-0 flex items-center px-2">
-            <div className="text-xs font-semibold text-primary">YOU</div>
-          </div>
-          <div
-            className="absolute top-1/2 -translate-y-1/2 transition-all duration-300 ease-out"
-            style={{ left: `${Math.min(playerProgress, 100)}%`, transform: 'translate(-50%, -50%)' }}
-          >
-            <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg">
-              <Car className="h-5 w-5" />
+            <div
+              className="transition-all duration-300 ease-out flex items-center justify-center"
+              style={{ marginLeft: `${Math.min(playerProgress, 100)}%` }}
+            >
+              <TrackCarMarker 
+                modelName={playerCarModel} 
+                color={playerCarColor}
+                className="transform -translate-x-1/2"
+              />
             </div>
+          </div>
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-primary">
+            YOU
           </div>
         </div>
       </div>
 
-      {/* Opponent Lanes */}
+      {/* Ghost Opponent Lanes */}
       {mode === 'ghost' && opponentProgress.map((progress, index) => (
         <div key={index} className="relative">
-          <div className="h-12 bg-background border-2 border-chart-2/30 rounded-lg relative overflow-hidden">
+          <div className="h-12 bg-background border-2 border-muted rounded-lg relative overflow-hidden">
             <div className="absolute inset-0 flex items-center px-2">
-              <div className="text-xs font-semibold text-chart-2">
-                {opponentNames[index] || `GHOST ${index + 1}`}
+              <div
+                className="transition-all duration-300 ease-out flex items-center justify-center"
+                style={{ marginLeft: `${Math.min(progress, 100)}%` }}
+              >
+                <TrackCarMarker 
+                  modelName="Default Racer" 
+                  color={CarColor.blue}
+                  className="transform -translate-x-1/2 opacity-50"
+                />
               </div>
             </div>
-            <div
-              className="absolute top-1/2 -translate-y-1/2 transition-all duration-300 ease-out"
-              style={{ left: `${Math.min(progress, 100)}%`, transform: 'translate(-50%, -50%)' }}
-            >
-              <div className="bg-chart-2 text-chart-2-foreground rounded-full p-2 shadow-lg opacity-70">
-                <Car className="h-5 w-5" />
-              </div>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+              {opponentNames[index] || `Ghost ${index + 1}`}
             </div>
           </div>
         </div>

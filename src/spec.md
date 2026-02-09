@@ -1,14 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Add TRP Coins rewards and admin grants, implement backend-backed Teams with TRP cost/member limits, and introduce a new System page with admin-managed Secret Holidays.
+**Goal:** Give new users a much larger starting balance, and ensure car design selection and visualization use full car models (design + color) in both the Shop and the race track view.
 
 **Planned changes:**
-- Update race completion flow to award and display “TRP Coins” on the Race Results scoreboard: 900–1000 for completed non-practice races, and 0 for practice races.
-- Add backend support to atomically persist race completion and credit TRP Coins to the caller’s profile balance, returning the awarded amount and resulting balance to the frontend.
-- Add admin-only backend + UI flow to grant arbitrary TRP Coins amounts to a specified user, with clear success/error feedback.
-- Implement backend Teams: create team (requires name) with a 50,000 TRP Coins creation cost deducted atomically, list teams, fetch team details, and join/leave; enforce a hard 100-member limit.
-- Replace placeholder Teams UI with real pages backed by Teams APIs: team list, create-team flow showing “50,000 TRP Coins”, team details/member list, and join/leave actions with proper loading/empty/error states.
-- Add a new “System” page in main navigation with Winter, Spring, Summer sections and a “Secret Holidays” section; Secret Holidays are readable by all users but add/remove is admin-only via backend-backed controls.
+- Backend: Set the default balance for newly created user profiles to `1000000000000000` (Nat) when a profile is first saved/created, without changing existing users’ balances.
+- Frontend (Shop): Update the Shop UI to browse/select full car designs (model/body style) with a visual preview, while still allowing purchase of a specific variant (design + color) and preserving owned-variant behavior.
+- Frontend (Race): Update the on-track player car marker to reflect the currently active car’s design and color, with a fallback to the existing default car (“Default Racer”, blue) when no active car is selected.
 
-**User-visible outcome:** Players see TRP Coins earned after non-practice races and their balance updates; admins can grant TRP Coins; users can create and manage Teams (with a 50,000 TRP Coins creation cost and 100-member cap); and everyone can view the new System page while admins can manage Secret Holidays.
+**User-visible outcome:** New users start with `1000000000000000` balance, players can view and choose full car designs (not only colors) in the Shop with a clear preview, and the race track visualization shows the player’s active car design and color during gameplay.

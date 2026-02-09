@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Sparkles, CheckCircle, XCircle } from 'lucide-react';
+import { Sparkles, CheckCircle, XCircle, Info } from 'lucide-react';
 import { parseAdminCommand } from '../../lib/adminCommandParser';
 import AdminAuditLog from '../../components/admin/AdminAuditLog';
 import { useAdminGrantTrpCoins } from '../../hooks/useEconomy';
@@ -30,18 +30,15 @@ export default function AdminUpdateAssistantPage() {
           ? identity.getPrincipal().toString()
           : parsedCommand.params.user;
         
-        const result = await grantCoins.mutateAsync({
+        await grantCoins.mutateAsync({
           amount: BigInt(parsedCommand.params.amount),
           user: targetUser,
         });
 
-        if (result.status === BigInt(200)) {
-          toast.success(`Successfully granted ${Number(result.creditAmount).toLocaleString()} TRP Coins!`);
-        } else {
-          toast.error(result.message || 'Failed to grant TRP Coins');
-        }
+        // If we reach here, the feature is available
+        toast.success(`Successfully granted ${parsedCommand.params.amount} TRP Coins!`);
       } else {
-        toast.success('Command executed successfully!');
+        toast.info('Command parsed but execution not yet implemented');
       }
       
       setCommand('');
@@ -60,6 +57,13 @@ export default function AdminUpdateAssistantPage() {
           <p className="text-muted-foreground">Use natural language to make updates</p>
         </div>
       </div>
+
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          Command execution features are currently limited. Backend support is being added.
+        </AlertDescription>
+      </Alert>
 
       <Card>
         <CardHeader>

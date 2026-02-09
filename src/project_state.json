@@ -1,40 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project to add TRP coin currency rewards on race end scoreboard, team creation/membership limits with TRP cost, and an admin-managed seasonal/holiday system tab.",
+  "summary": "Car game app with 3D cars; Version 7 deployed to production.",
   "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-implement-trp-coins-as-the-in-app-currency-name-and-award-900-1000-trp-coins-at-the-end-of-each-completed-non-practice-race-shown-on-the-race-results-scoreboard",
-      "title": "Implement TRP Coins as the in-app currency name and award 900–1000 TRP Coins at the end of each completed non-practice race, shown on the Race Results scoreboard.",
+      "id": "feature-update-the-shop-page-to-support-browsing-and-selecting-full-car-designs-model-body-style-with-a-visual-preview-not-just-selecting-colors",
+      "title": "Update the Shop page to support browsing and selecting full car designs (model/body style) with a visual preview, not just selecting colors.",
       "reqIds": [
-        "REQ-1"
+        "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-admin-capabilities-to-grant-an-arbitrary-amount-of-trp-coins-including-very-large-amounts-and-expose-this-via-an-admin-ui-and-or-existing-admin-command-flow",
-      "title": "Add admin capabilities to grant an arbitrary amount of TRP Coins (including very large amounts) and expose this via an admin UI and/or existing admin command flow.",
+      "id": "feature-update-the-on-track-visualization-during-gameplay-so-the-player-s-displayed-car-matches-the-currently-selected-active-car-design-model-name-and-color-instead-of-a-generic-car-icon",
+      "title": "Update the on-track visualization during gameplay so the player’s displayed car matches the currently selected/active car design (model name) and color, instead of a generic car icon.",
       "reqIds": [
         "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-replace-the-placeholder-teams-pages-with-real-ui-backed-by-the-backend-teams-apis-including-a-create-team-flow-showing-the-50-000-trp-coins-cost-and-enforcing-the-100-member-limit-in-the-ui",
-      "title": "Replace the placeholder Teams pages with real UI backed by the backend teams APIs, including a create-team flow showing the 50,000 TRP Coins cost and enforcing the 100-member limit in the UI.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-new-system-tab-page-in-the-main-navigation-with-sections-for-winter-spring-summer-and-a-secret-holidays-area-secret-holidays-must-be-admin-managed-add-remove-via-backend-backed-admin-controls",
-      "title": "Add a new \"System\" tab/page in the main navigation with sections for Winter, Spring, Summer, and a \"Secret Holidays\" area; Secret Holidays must be admin-managed (add/remove) via backend-backed admin controls.",
-      "reqIds": [
-        "REQ-6"
       ],
       "version": 1
     }
@@ -42,40 +26,33 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Implement TRP coin currency: earn 900–1000 TRP at end-of-race scoreboard; admins can grant themselves unlimited TRP.",
+      "summary": "Set default starting player money to 1000000000000000.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Add teams feature: create a team for 50,000 TRP; limit teams to 100 members.",
+      "summary": "Update shop to support selecting/browsing full car designs (not just colors).",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Add a System tab for seasons/holidays (Winter/Summer/Spring + secret holidays) that admins can manage/add.",
+      "summary": "Ensure the selected car design is displayed on the track during gameplay.",
       "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-5",
-      "summary": "Add backend support to credit TRP Coins to the caller’s profile balance when a non-practice race is completed, and return the awarded amount to the frontend as part of the race completion flow.",
+      "id": "AR-4",
+      "summary": "Set the default starting user balance to 1000000000000000 (Nat) for newly created user profiles.",
       "reqIds": [
-        "REQ-2"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Implement Teams in the backend with: team creation costing 50,000 TRP Coins, a hard limit of 100 members per team, and membership management APIs for listing teams and viewing team details.",
-      "reqIds": [
-        "REQ-4"
+        "REQ-1"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Add TRP Coins rewards, teams with TRP cost/member limit, and admin-managed Seasons/System tab",
+  "gameProjectType": "3d",
+  "projectName": "Increase starting balance and show full car designs in Shop and on-track visualization",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

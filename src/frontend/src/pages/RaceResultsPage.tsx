@@ -3,15 +3,15 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Zap, Target, Coins, RotateCcw, Home, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Trophy, Zap, Target, Coins, RotateCcw, Home, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { RaceMetrics } from '../lib/raceMetrics';
-import type { CreditResult } from '../backend';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 
 interface RaceResults extends RaceMetrics {
   isDemoMode?: boolean;
-  creditResult?: CreditResult | null;
+  creditResult?: any | null;
+  saveStatus?: 'success' | 'failure' | 'skipped';
 }
 
 export default function RaceResultsPage() {
@@ -33,9 +33,7 @@ export default function RaceResultsPage() {
     return null;
   }
 
-  const showSaveStatus = !results.isDemoMode && identity;
-  const earnedTrpCoins = results.isDemoMode ? 0 : (results.creditResult?.creditAmount ? Number(results.creditResult.creditAmount) : 0);
-  const newBalance = results.creditResult?.finalBalance ? Number(results.creditResult.finalBalance) : null;
+  const saveStatus = results.saveStatus || 'skipped';
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -51,21 +49,7 @@ export default function RaceResultsPage() {
         )}
       </div>
 
-      {showSaveStatus && (
-        <Alert className="border-chart-1/50 bg-chart-1/5">
-          <CheckCircle2 className="h-4 w-4 text-chart-1" />
-          <AlertDescription>
-            Your race performance has been saved and your stats have been updated!
-            {newBalance !== null && (
-              <span className="block mt-1">
-                New balance: <strong>{newBalance.toLocaleString()} TRP Coins</strong>
-              </span>
-            )}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {!results.isDemoMode && !identity && (
+      {saveStatus === 'skipped' && !results.isDemoMode && !identity && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
@@ -122,30 +106,28 @@ export default function RaceResultsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Coins className="h-5 w-5 text-chart-4" />
-              TRP Coins Earned
+              Race Complete
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-5xl font-bold text-chart-4">
-              {earnedTrpCoins.toLocaleString()}
-            </div>
+            <div className="text-3xl font-bold text-chart-4">Great Job!</div>
             <p className="text-sm text-muted-foreground mt-2">
-              {results.isDemoMode ? 'Practice mode' : 'TRP Coins earned'}
+              {results.isDemoMode ? 'Practice mode completed' : 'Race finished'}
             </p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="flex items-center justify-center gap-4">
-        <Button size="lg" asChild>
+      <div className="flex gap-4 justify-center">
+        <Button asChild size="lg" className="gap-2">
           <Link to="/race">
-            <RotateCcw className="h-5 w-5 mr-2" />
+            <RotateCcw className="h-5 w-5" />
             Race Again
           </Link>
         </Button>
-        <Button size="lg" variant="outline" asChild>
+        <Button asChild variant="outline" size="lg" className="gap-2">
           <Link to="/">
-            <Home className="h-5 w-5 mr-2" />
+            <Home className="h-5 w-5" />
             Dashboard
           </Link>
         </Button>

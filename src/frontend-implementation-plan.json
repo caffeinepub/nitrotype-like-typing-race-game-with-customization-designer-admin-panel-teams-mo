@@ -1,140 +1,52 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "TRP Coins rewards UI, real Teams UI, and System page with admin-managed Secret Holidays",
+  "title": "Shop: full car design previews + Race track marker matches active car",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Show TRP Coins (900–1000 for non-practice, 0 for practice) on Race Results and use backend-provided award/balance for non-practice races.",
+      "id": "REQ-2",
+      "summary": "Enhance Shop browsing to present each car design/model with a live visual preview and allow purchasing a specific design+color variant while preserving owned-state behavior.",
       "acceptanceCriteria": [
-        "Race Results UI uses the label \"TRP Coins\" (not generic \"Currency\") for earned and balance displays.",
-        "For non-practice races, the awarded amount displayed on Race Results is an integer within [900, 1000].",
-        "For practice races, awarded TRP Coins is 0 and the user balance is not changed.",
-        "Awarding TRP Coins is enforced by the backend (frontend cannot directly change balance)."
+        "Each car model/design in the shop has a clear visual preview of the design (e.g., using the existing 3D car viewer component) that updates when the user changes the selected variant (color) for that design.",
+        "Users can still purchase a specific variant (design + color) as they do today.",
+        "Owned variants remain clearly indicated and cannot be re-purchased (current behavior preserved)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/RacePage.tsx",
+          "path": "frontend/src/pages/ShopPage.tsx",
           "operation": "modify",
-          "description": "Update race completion flow to call the backend race-completion capability (completeRace) for non-practice races and store the returned awarded TRP Coins + resulting balance into sessionStorage alongside local metrics; keep practice mode awarding at 0 and do not invoke the crediting capability. Verify the component's usage instructions before implementing."
+          "description": "Add a per-model visual preview panel using the existing CarViewer3D component so each model card shows the full design and updates as the selected color changes; initialize a sensible default selected color per model on catalog load so previews render without extra clicks; keep variant purchase flow intact (design+color mapped to the existing catalog variant id). Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/RaceResultsPage.tsx",
+          "path": "frontend/src/pages/ShopPage.tsx",
           "operation": "modify",
-          "description": "Replace generic \"Earned/Currency\" display with \"TRP Coins\" and render awarded amount and (when available) resulting balance from the backend credit result stored in sessionStorage; ensure practice mode shows 0 TRP Coins and no balance change messaging. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/lib/raceMetrics.ts",
-          "operation": "modify",
-          "description": "Remove/stop using the local earnedCurrency calculation for non-practice award display (backend is source of truth), while keeping WPM/accuracy/time calculations unchanged; ensure practice mode still displays 0 TRP Coins in results. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/ProfilePage.tsx",
-          "operation": "modify",
-          "description": "Update balance labeling to explicitly reference \"TRP Coins\" (e.g., Balance (TRP Coins)) so user-facing currency wording is consistent across the app. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/DashboardPage.tsx",
-          "operation": "modify",
-          "description": "Update the balance card label to explicitly reference \"TRP Coins\" for consistent currency naming. Verify the component's usage instructions before implementing."
+          "description": "Preserve owned-state rules while improving UX: allow selecting owned variants for preview (do not disable color selection), keep owned variants clearly indicated, and ensure the purchase button remains disabled (and labeled appropriately) when the currently selected variant is owned."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Provide an admin UI and admin-assistant command support to grant arbitrary TRP Coins to a specified user via backend-admin capability.",
+      "summary": "Update the Race page track visualization to render the moving player marker using the active car’s design and color (with a consistent fallback when no active car is selected).",
       "acceptanceCriteria": [
-        "Backend provides an admin-only method to grant TRP Coins to a specified user (including self).",
-        "Non-admin callers cannot grant TRP Coins and receive an authorization error.",
-        "Admin UI provides a way to input a Principal and an amount, execute the grant, and show success/error feedback.",
-        "If the existing admin command assistant is used for currency grants, it supports a command form that clearly grants TRP Coins (and the UI labels it as TRP Coins)."
+        "On the Race page, the moving player marker in the track visualization reflects the active car’s color and design (derived from the active car’s catalog entry).",
+        "If no active car is selected, the track visualization uses the existing fallback car (\"Default Racer\", blue) consistently with the existing 3D viewer fallback.",
+        "No Internet Identity login state regressions: the Race page still works in practice/demo and logged-out scenarios as it does now."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useEconomy.ts",
+          "path": "frontend/src/components/race/TrackCarMarker.tsx",
           "operation": "create",
-          "description": "Add React Query hooks for admin TRP Coins grants (wrapping backend adminGrantTrpCoins) and related query invalidation (e.g., refresh current user profile/balance after successful grant). Use the authorization component’s role model via existing AdminGuard/isAdmin checks; verify the component's usage instructions before implementing."
+          "description": "Create a lightweight track marker component that can visually differentiate car designs (based on modelName) and apply the selected CarColor, suitable for use inside TrackVisualization (non-Canvas, small UI element)."
         },
         {
-          "path": "frontend/src/pages/admin/AdminEconomyToolsPage.tsx",
+          "path": "frontend/src/components/race/TrackVisualization.tsx",
           "operation": "modify",
-          "description": "Replace placeholder content with an admin-only TRP Coins grant form: Principal input, amount input (supports very large values), submit action calling the admin grant hook, and clear success/error feedback. Compose existing shadcn-ui components (inputs/buttons/cards) without editing immutable ui components; verify the component's usage instructions before implementing."
+          "description": "Extend TrackVisualization props to accept the player's active car modelName and CarColor; render the player's moving marker using the new TrackCarMarker (design+color) instead of the generic lucide Car icon; keep ghost lanes unchanged or continue using the generic icon for opponents."
         },
         {
-          "path": "frontend/src/lib/adminCommandParser.ts",
+          "path": "frontend/src/pages/RacePage.tsx",
           "operation": "modify",
-          "description": "Extend parsing to recognize a TRP Coins-specific command form (e.g., \"grant 1000 trp coins to <principal>\") and normalize it into a structured action that clearly indicates TRP Coins (not generic currency). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/admin/AdminUpdateAssistantPage.tsx",
-          "operation": "modify",
-          "description": "Wire the parsed TRP Coins grant command to actually call the backend admin grant capability (via a hook) and show success/error toasts; ensure UI text labels the currency as \"TRP Coins\". Use the authorization component via existing AdminGuard gating; verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Replace placeholder Teams pages with backend-backed teams list, create-team flow (50,000 TRP Coins), and team details with membership actions that handle member limit errors.",
-      "acceptanceCriteria": [
-        "/teams shows a list of teams from the backend (loading/empty/error states handled).",
-        "/teams provides a create-team UI (dialog or inline form) that clearly states the cost: \"50,000 TRP Coins\".",
-        "After successful creation, the new team appears in the list without a full page refresh (React Query invalidation/refetch is acceptable).",
-        "/teams/$teamId shows team details and member list from the backend.",
-        "Team join/leave (or equivalent) actions update the UI and respect backend errors (including \"team full\" when at 100 members)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useTeams.ts",
-          "operation": "modify",
-          "description": "Replace placeholder teams hooks with React Query hooks calling backend teams capabilities (getTeams, getTeamById, createTeam) plus join/leave hooks once available; include proper loading/empty/error states and query invalidation after mutations. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/TeamsPage.tsx",
-          "operation": "modify",
-          "description": "Implement Teams list UI backed by the teams hooks, including loading/empty/error states and a create-team flow that clearly states cost \"50,000 TRP Coins\"; on success, refresh the list via query invalidation/refetch and surface backend errors (e.g., insufficient balance) in English. Compose existing shadcn-ui components; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/TeamDetailsPage.tsx",
-          "operation": "modify",
-          "description": "Implement team details page backed by getTeamById with member list rendering and member count/limit display (100 max); add join/leave controls wired to hooks and show backend errors like \"team full\". Compose existing shadcn-ui components; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/backend.d.ts",
-          "operation": "modify",
-          "description": "Update frontend backend type definitions to reflect the teams membership management capabilities used by the new UI (e.g., join/leave) once they exist, keeping types aligned so the Teams UI can compile against the actor interface. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "summary": "Add a System page in main navigation with Winter/Spring/Summer sections and backend-backed Secret Holidays list, with admin-only add/remove controls.",
-      "acceptanceCriteria": [
-        "The main authenticated navigation includes a link labeled \"System\" that routes to a new page.",
-        "The System page displays Winter, Spring, and Summer as visible sections/tabs.",
-        "The System page displays a \"Secret Holidays\" section listing items from the backend.",
-        "Admins can add a new Secret Holiday via UI on the System page (or an admin-only control within it), and non-admin users cannot add/remove Secret Holidays.",
-        "Backend persists Secret Holidays and exposes query APIs for all users to read them and admin-only APIs to manage them."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/SystemPage.tsx",
-          "operation": "create",
-          "description": "Create the System page UI with Winter, Spring, and Summer sections (English text) and a \"Secret Holidays\" section that lists holidays from the backend; show admin-only add/remove controls using existing admin role checks. Compose existing shadcn-ui components; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useHolidays.ts",
-          "operation": "create",
-          "description": "Add React Query hooks to fetch Secret Holidays (getHolidays) and admin mutations to add/remove holidays (addHoliday/removeHoliday) with appropriate cache invalidation. Use the authorization component’s admin gating via existing isAdmin/AdminGuard patterns; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Register the new /system route to render SystemPage and include it in the router tree so it is navigable. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
-          "operation": "modify",
-          "description": "Add a main navigation link labeled \"System\" visible for authenticated users that routes to /system, consistent with existing nav button styling. Verify the component's usage instructions before implementing."
+          "description": "Wire the active car information already resolved in RacePage (active car from catalog with fallback to \"Default Racer\" + blue) into TrackVisualization so the track marker matches the same car shown in CarViewer3D; ensure behavior remains unchanged for practice/demo mode and logged-out sessions."
         }
       ]
     }

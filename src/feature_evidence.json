@@ -2,14 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-trp-coins-as-the-in-app-currency-name-and-award-900-1000-trp-coins-at-the-end-of-each-completed-non-practice-race-shown-on-the-race-results-scoreboard",
-      "featureTitle": "Implement TRP Coins as the in-app currency name and award 900–1000 TRP Coins at the end of each completed non-practice race, shown on the Race Results scoreboard.",
+      "featureId": "feature-update-the-shop-page-to-support-browsing-and-selecting-full-car-designs-model-body-style-with-a-visual-preview-not-just-selecting-colors",
+      "featureTitle": "Update the Shop page to support browsing and selecting full car designs (model/body style) with a visual preview, not just selecting colors.",
       "files": [
-        "frontend/src/lib/raceMetrics.ts",
-        "frontend/src/pages/DashboardPage.tsx",
-        "frontend/src/pages/ProfilePage.tsx",
-        "frontend/src/pages/RacePage.tsx",
-        "frontend/src/pages/RaceResultsPage.tsx"
+        "frontend/src/pages/ShopPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -20,18 +16,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-2"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-admin-capabilities-to-grant-an-arbitrary-amount-of-trp-coins-including-very-large-amounts-and-expose-this-via-an-admin-ui-and-or-existing-admin-command-flow",
-      "featureTitle": "Add admin capabilities to grant an arbitrary amount of TRP Coins (including very large amounts) and expose this via an admin UI and/or existing admin command flow.",
+      "featureId": "feature-update-the-on-track-visualization-during-gameplay-so-the-player-s-displayed-car-matches-the-currently-selected-active-car-design-model-name-and-color-instead-of-a-generic-car-icon",
+      "featureTitle": "Update the on-track visualization during gameplay so the player’s displayed car matches the currently selected/active car design (model name) and color, instead of a generic car icon.",
       "files": [
-        "frontend/src/hooks/useEconomy.ts",
-        "frontend/src/lib/adminCommandParser.ts",
-        "frontend/src/pages/admin/AdminEconomyToolsPage.tsx",
-        "frontend/src/pages/admin/AdminUpdateAssistantPage.tsx"
+        "frontend/src/components/race/TrackCarMarker.tsx",
+        "frontend/src/components/race/TrackVisualization.tsx",
+        "frontend/src/pages/RacePage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -43,49 +38,6 @@
       ],
       "testIds": [
         "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-replace-the-placeholder-teams-pages-with-real-ui-backed-by-the-backend-teams-apis-including-a-create-team-flow-showing-the-50-000-trp-coins-cost-and-enforcing-the-100-member-limit-in-the-ui",
-      "featureTitle": "Replace the placeholder Teams pages with real UI backed by the backend teams APIs, including a create-team flow showing the 50,000 TRP Coins cost and enforcing the 100-member limit in the UI.",
-      "files": [
-        "frontend/src/hooks/useTeams.ts",
-        "frontend/src/pages/TeamDetailsPage.tsx",
-        "frontend/src/pages/TeamsPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-new-system-tab-page-in-the-main-navigation-with-sections-for-winter-spring-summer-and-a-secret-holidays-area-secret-holidays-must-be-admin-managed-add-remove-via-backend-backed-admin-controls",
-      "featureTitle": "Add a new \"System\" tab/page in the main navigation with sections for Winter, Spring, Summer, and a \"Secret Holidays\" area; Secret Holidays must be admin-managed (add/remove) via backend-backed admin controls.",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/layout/AppLayout.tsx",
-        "frontend/src/hooks/useHolidays.ts",
-        "frontend/src/pages/SystemPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-6"
       ],
       "confidence": "high"
     }

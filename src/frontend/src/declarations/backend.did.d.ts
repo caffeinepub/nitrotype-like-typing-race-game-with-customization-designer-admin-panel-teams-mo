@@ -10,43 +10,18 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface CreditResult {
-  'status' : bigint,
-  'creditAmount' : bigint,
-  'message' : string,
-  'finalBalance' : bigint,
-}
-export interface Holiday {
+export interface Car {
   'id' : bigint,
-  'date' : string,
   'name' : string,
-  'enabled' : boolean,
+  'color' : CarColor,
+  'price' : bigint,
 }
-export interface ImmutableTeam {
-  'id' : bigint,
-  'members' : Array<Principal>,
-  'balance' : bigint,
-  'name' : string,
-  'memberLimit' : bigint,
-  'founder' : Principal,
-}
+export type CarColor = { 'red' : null } |
+  { 'blue' : null } |
+  { 'black' : null } |
+  { 'white' : null } |
+  { 'yellow' : null };
 export interface Inventory { 'cars' : Array<bigint> }
-export interface LeaderboardEntry {
-  'wpm' : number,
-  'user' : Principal,
-  'combinedScore' : number,
-  'accuracy' : number,
-}
-export type LeaderboardType = { 'wpmLeaderboard' : null } |
-  { 'accuracyLeaderboard' : null } |
-  { 'combinedLeaderboard' : null };
-export interface RacePerformance {
-  'wpm' : number,
-  'raceTextId' : bigint,
-  'raceTime' : bigint,
-  'timestamp' : Time,
-  'accuracy' : number,
-}
 export type Time = bigint;
 export interface UserProfile {
   'username' : string,
@@ -64,30 +39,16 @@ export type UserRole = { 'admin' : null } |
   { 'guest' : null };
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
-  'addHoliday' : ActorMethod<[string, string], undefined>,
-  'adminGrantTrpCoins' : ActorMethod<[bigint, Principal], CreditResult>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'completeRace' : ActorMethod<[], CreditResult>,
-  'createTeam' : ActorMethod<[string], undefined>,
-  'createUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'buyCar' : ActorMethod<[bigint], undefined>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  'getHolidays' : ActorMethod<[], Array<Holiday>>,
+  'getCarCatalog' : ActorMethod<[], Array<Car>>,
   'getInventory' : ActorMethod<[Principal], Inventory>,
-  'getLeaderboard' : ActorMethod<
-    [LeaderboardType, [] | [bigint]],
-    Array<LeaderboardEntry>
-  >,
-  'getRacePerformances' : ActorMethod<[Principal], Array<RacePerformance>>,
-  'getTeamById' : ActorMethod<[bigint], [] | [ImmutableTeam]>,
-  'getTeams' : ActorMethod<[], Array<ImmutableTeam>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'initializeSystem' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  'promoteToAdmin' : ActorMethod<[Principal], undefined>,
-  'removeHoliday' : ActorMethod<[bigint], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'saveRacePerformance' : ActorMethod<[RacePerformance], undefined>,
-  'updateBestPerformance' : ActorMethod<[RacePerformance], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

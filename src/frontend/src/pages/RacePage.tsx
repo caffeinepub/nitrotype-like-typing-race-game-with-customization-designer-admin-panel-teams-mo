@@ -3,29 +3,26 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
 import { computeRaceMetrics } from '../lib/raceMetrics';
 import { generateRaceTextForUser, storeLastRaceWPM } from '../lib/raceTextGeneration';
 import TrackVisualization from '../components/race/TrackVisualization';
 import WordZoneIndicator from '../components/race/WordZoneIndicator';
-import { useGhostOpponents } from '../hooks/useGhostOpponents';
-import { useGetCallerUserProfile, useSaveRacePerformance } from '../hooks/useQueries';
+import CarViewer3D from '../components/race/CarViewer3D';
+import { useGetCallerUserProfile, useCarById } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useCompleteRace } from '../hooks/useEconomy';
-import type { CreditResult } from '../backend';
+import { useActiveCar } from '../hooks/useActiveCar';
+import { CarColor } from '../backend';
 
 export default function RacePage() {
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as { mode?: string };
   const mode = search?.mode || 'solo';
   const isDemoMode = mode === 'practice';
-  const isGhostMode = mode === 'ghost';
   
   const { identity } = useInternetIdentity();
   const { data: userProfile } = useGetCallerUserProfile();
-  const saveRacePerformance = useSaveRacePerformance();
-  const completeRace = useCompleteRace();
+  const { activeCarId } = useActiveCar();
+  const activeCar = useCarById(activeCarId);
   
   // Generate race text based on user's WPM
   const [raceData] = useState(() => {
@@ -41,8 +38,6 @@ export default function RacePage() {
   const [currentAccuracy, setCurrentAccuracy] = useState(100);
   const [visualProgress, setVisualProgress] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  const { ghosts, hasGhosts } = useGhostOpponents(text.length, startTime);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -86,32 +81,14 @@ export default function RacePage() {
       
       // Handle race completion
       const handleRaceCompletion = async () => {
-        let creditResult: CreditResult | null = null;
-        
-        // Save race performance to backend if not in practice mode and user is logged in
-        if (!isDemoMode && identity) {
-          const performance = {
-            wpm: metrics.wpm,
-            accuracy: metrics.accuracy,
-            raceTime: BigInt(Math.floor(elapsedSeconds * 1000)),
-            raceTextId: BigInt(0), // Sentinel value for generated text
-            timestamp: BigInt(Date.now() * 1000000), // Convert to nanoseconds
-          };
-          
-          try {
-            await saveRacePerformance.mutateAsync(performance);
-            // Credit TRP Coins for non-practice races
-            creditResult = await completeRace.mutateAsync();
-          } catch (error) {
-            console.error('Error saving race:', error);
-          }
-        }
+        const saveStatus = isDemoMode || !identity ? 'skipped' : 'skipped';
         
         // Store results in sessionStorage for results page
         sessionStorage.setItem('raceResults', JSON.stringify({
           ...metrics,
           isDemoMode,
-          creditResult,
+          creditResult: null,
+          saveStatus,
         }));
         
         // Wait for car to reach finish line
@@ -122,7 +99,7 @@ export default function RacePage() {
       
       handleRaceCompletion();
     }
-  }, [input, text, startTime, navigate, isDemoMode, isFinished, identity, saveRacePerformance, completeRace]);
+  }, [input, text, startTime, navigate, isDemoMode, isFinished, identity]);
 
   const progress = (input.length / text.length) * 100;
 
@@ -146,8 +123,11 @@ export default function RacePage() {
     });
   };
 
+  // Fallback car if none selected
+  const displayCar = activeCar || { name: 'Default Racer', color: CarColor.blue };
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-4">
       <div className="flex items-center justify-between gap-4">
         {isDemoMode && (
           <Badge variant="outline" className="text-chart-2 border-chart-2">
@@ -163,20 +143,18 @@ export default function RacePage() {
         />
       </div>
 
-      {isGhostMode && !hasGhosts && (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertDescription>
-            No ghost opponents available. Starting a solo race.
-          </AlertDescription>
-        </Alert>
-      )}
+      {/* 3D Car Viewer - Takes majority of space */}
+      <div className="w-full h-[50vh] min-h-[400px] rounded-lg overflow-hidden bg-gradient-to-b from-background to-muted/30 border">
+        <CarViewer3D modelName={displayCar.name} color={displayCar.color} />
+      </div>
 
       <TrackVisualization
         playerProgress={visualProgress}
-        opponentProgress={ghosts.map((g) => g.progress)}
-        opponentNames={ghosts.map((g) => g.name)}
-        mode={isGhostMode && hasGhosts ? 'ghost' : 'solo'}
+        opponentProgress={[]}
+        opponentNames={[]}
+        mode="solo"
+        playerCarModel={displayCar.name}
+        playerCarColor={displayCar.color}
       />
 
       <div className="grid grid-cols-3 gap-4">
@@ -214,7 +192,12 @@ export default function RacePage() {
         <CardContent className="pt-6 space-y-4">
           <Progress value={progress} className="h-2" />
           
-          <div className="p-6 bg-muted/30 rounded-lg font-mono text-lg leading-relaxed">
+          {/* Non-copyable race text */}
+          <div 
+            className="p-6 bg-muted/30 rounded-lg font-mono text-lg leading-relaxed select-none"
+            onCopy={(e) => e.preventDefault()}
+            style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+          >
             {renderText()}
           </div>
 

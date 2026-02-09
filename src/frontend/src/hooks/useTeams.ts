@@ -1,6 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { ImmutableTeam } from '../backend';
+import { Principal } from '@dfinity/principal';
+
+// Stub type for team functionality (backend support pending)
+interface ImmutableTeam {
+  id: bigint;
+  name: string;
+  balance: bigint;
+  memberLimit: bigint;
+  founder: Principal;
+  members: Principal[];
+}
 
 export function useGetTeams() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -8,10 +18,10 @@ export function useGetTeams() {
   return useQuery<ImmutableTeam[]>({
     queryKey: ['teams'],
     queryFn: async () => {
-      if (!actor) return [];
-      return actor.getTeams();
+      // Teams feature temporarily disabled - backend support pending
+      return [];
     },
-    enabled: !!actor && !actorFetching,
+    enabled: false,
   });
 }
 
@@ -21,10 +31,10 @@ export function useGetTeamById(teamId: string | undefined) {
   return useQuery<ImmutableTeam | null>({
     queryKey: ['team', teamId],
     queryFn: async () => {
-      if (!actor || !teamId) return null;
-      return actor.getTeamById(BigInt(teamId));
+      // Teams feature temporarily disabled - backend support pending
+      return null;
     },
-    enabled: !!actor && !actorFetching && !!teamId,
+    enabled: false,
   });
 }
 
@@ -35,7 +45,8 @@ export function useCreateTeam() {
   return useMutation({
     mutationFn: async (teamName: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createTeam(teamName);
+      // Feature temporarily disabled - backend support pending
+      throw new Error('Team creation is not yet available');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] });

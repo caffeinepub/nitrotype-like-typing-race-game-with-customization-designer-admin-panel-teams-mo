@@ -8,17 +8,33 @@ import Float "mo:core/Float";
 import Principal "mo:core/Principal";
 import Set "mo:core/Set";
 import Runtime "mo:core/Runtime";
-import MixinAuthorization "authorization/MixinAuthorization";
-import AccessControl "authorization/access-control";
-import Migration "migration";
 import Nat "mo:core/Nat";
 import Int "mo:core/Int";
 import List "mo:core/List";
+import MixinAuthorization "authorization/MixinAuthorization";
+import AccessControl "authorization/access-control";
+import Migration "migration";
 
+// Specify the data migration function in with-clause
 (with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
+
+  public type CarColor = {
+    #blue;
+    #black;
+    #red;
+    #yellow;
+    #white;
+  };
+
+  public type Car = {
+    id : Nat;
+    name : Text;
+    price : Nat;
+    color : CarColor;
+  };
 
   public type UserProfile = {
     username : Text;
@@ -39,12 +55,6 @@ actor {
     enabled : Bool;
   };
 
-  public type Car = {
-    id : Nat;
-    name : Text;
-    price : Nat;
-  };
-
   public type Inventory = {
     cars : [Nat];
   };
@@ -57,7 +67,6 @@ actor {
     timestamp : Time.Time;
   };
 
-  // New immutable type alias for Team API return
   public type ImmutableTeam = {
     id : Nat;
     name : Text;
@@ -109,9 +118,10 @@ actor {
   var profileCount : Nat = 0;
   var teamCounter : Nat = 0;
   var holidayCounter : Nat = 0;
+  var systemInitialized : Bool = false;
 
-  // Now using explicit Nat literal, not invalid public immutable actor field
   let TEAM_CREATE_COST : Nat = 50_000_000;
+  let DEFAULT_BALANCE : Nat = 1_000_000_000_000_000;
 
   func isInitialAdmin() : Bool {
     profileCount < 5;
@@ -169,32 +179,60 @@ actor {
     };
   };
 
-  public shared ({ caller }) func createUserProfile(profile : UserProfile) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can create profiles");
+  func updateUserBalance(user : Principal, newBalance : Nat) {
+    switch (userProfiles.get(user)) {
+      case (null) { Runtime.trap("User does not exist") };
+      case (?profile) {
+        userProfiles.add(user, { profile with balance = newBalance });
+      };
     };
+  };
 
-    switch (userProfiles.get(caller)) {
-      case (?_) { Runtime.trap("Profile already exists") };
-      case (null) {
-        validateUniqueUsername(profile.username);
+  func calculateAverageWPM(raceHistory : [RacePerformance]) : Float {
+    if (raceHistory.size() == 0) { return 0.0 };
+    let totalWPM = raceHistory.foldLeft(
+      0.0,
+      func(acc, perf) { acc + perf.wpm },
+    );
+    totalWPM / raceHistory.size().toFloat();
+  };
 
-        if (isInitialAdmin()) {
-          AccessControl.assignRole(accessControlState, caller, caller, #admin);
-        };
-
-        userProfiles.add(caller, profile);
-        usersBestPerformance.add(
-          caller,
-          {
-            wpm = 0.0;
-            accuracy = 0.0;
-            raceTime = 0;
-            raceTextId = 0;
-            timestamp = Time.now();
-          },
-        );
-        profileCount += 1;
+  func initializeCarCatalog() {
+    if (cars.isEmpty()) {
+      let carCatalog : [(Nat, Car)] = [
+        (1, { id = 1; name = "Lamborghini Urus"; price = 1_000_000_000; color = #blue }),
+        (2, { id = 2; name = "Lamborghini Urus"; price = 1_000_000_000; color = #black }),
+        (3, { id = 3; name = "Lamborghini Urus"; price = 1_000_000_000; color = #red }),
+        (4, { id = 4; name = "Lamborghini Urus"; price = 1_000_000_000; color = #yellow }),
+        (5, { id = 5; name = "Lamborghini Urus"; price = 1_000_000_000; color = #white }),
+        (6, { id = 6; name = "Lamborghini Revuelto"; price = 2_000_000_000; color = #blue }),
+        (7, { id = 7; name = "Lamborghini Revuelto"; price = 2_000_000_000; color = #black }),
+        (8, { id = 8; name = "Lamborghini Revuelto"; price = 2_000_000_000; color = #red }),
+        (9, { id = 9; name = "Lamborghini Revuelto"; price = 2_000_000_000; color = #yellow }),
+        (10, { id = 10; name = "Lamborghini Revuelto"; price = 2_000_000_000; color = #white }),
+        (11, { id = 11; name = "Lamborghini Temerario"; price = 2_000_000_000; color = #blue }),
+        (12, { id = 12; name = "Lamborghini Temerario"; price = 2_000_000_000; color = #black }),
+        (13, { id = 13; name = "Lamborghini Temerario"; price = 2_000_000_000; color = #red }),
+        (14, { id = 14; name = "Lamborghini Temerario"; price = 2_000_000_000; color = #yellow }),
+        (15, { id = 15; name = "Lamborghini Temerario"; price = 2_000_000_000; color = #white }),
+        (16, { id = 16; name = "Lamborghini Huracan"; price = 1_500_000_000; color = #blue }),
+        (17, { id = 17; name = "Lamborghini Huracan"; price = 1_500_000_000; color = #black }),
+        (18, { id = 18; name = "Lamborghini Huracan"; price = 1_500_000_000; color = #red }),
+        (19, { id = 19; name = "Lamborghini Huracan"; price = 1_500_000_000; color = #yellow }),
+        (20, { id = 20; name = "Lamborghini Huracan"; price = 1_500_000_000; color = #white }),
+        (21, { id = 21; name = "Bugatti Veyron"; price = 3_000_000_000; color = #blue }),
+        (22, { id = 22; name = "Bugatti Veyron"; price = 3_000_000_000; color = #black }),
+        (23, { id = 23; name = "Bugatti Veyron"; price = 3_000_000_000; color = #red }),
+        (24, { id = 24; name = "Bugatti Veyron"; price = 3_000_000_000; color = #yellow }),
+        (25, { id = 25; name = "Bugatti Veyron"; price = 3_000_000_000; color = #white }),
+        (26, { id = 26; name = "Bugatti Chiron"; price = 4_000_000_000; color = #blue }),
+        (27, { id = 27; name = "Bugatti Chiron"; price = 4_000_000_000; color = #black }),
+        (28, { id = 28; name = "Bugatti Chiron"; price = 4_000_000_000; color = #red }),
+        (29, { id = 29; name = "Bugatti Chiron"; price = 4_000_000_000; color = #yellow }),
+        (30, { id = 30; name = "Bugatti Chiron"; price = 4_000_000_000; color = #white }),
+      ];
+      for ((id, car) in carCatalog.values()) {
+        cars.add(id, car);
       };
     };
   };
@@ -207,8 +245,8 @@ actor {
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view profiles");
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own profile");
     };
     userProfiles.get(user);
   };
@@ -218,11 +256,40 @@ actor {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
 
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      validateUniqueUsername(profile.username);
+    // Check if this is a new profile or an update
+    switch (userProfiles.get(caller)) {
+      case (null) {
+        // New profile: validate username and set default balance
+        if (not AccessControl.isAdmin(accessControlState, caller)) {
+          validateUniqueUsername(profile.username);
+        };
+        
+        userProfiles.add(
+          caller,
+          {
+            profile with
+            balance = DEFAULT_BALANCE;
+            createdAt = Time.now();
+          },
+        );
+        profileCount += 1;
+      };
+      case (?existingProfile) {
+        // Existing profile: preserve balance and other sensitive fields
+        if (not AccessControl.isAdmin(accessControlState, caller)) {
+          validateUniqueUsername(profile.username);
+        };
+        
+        userProfiles.add(
+          caller,
+          {
+            profile with
+            balance = existingProfile.balance;
+            createdAt = existingProfile.createdAt;
+          },
+        );
+      };
     };
-
-    userProfiles.add(caller, profile);
   };
 
   public query ({ caller }) func getInventory(user : Principal) : async Inventory {
@@ -235,36 +302,6 @@ actor {
     };
   };
 
-  public shared ({ caller }) func promoteToAdmin(targetUser : Principal) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Only admins can promote others to admin");
-    };
-
-    switch (userProfiles.get(targetUser)) {
-      case (null) { Runtime.trap("Target user does not exist") };
-      case (?_) { AccessControl.assignRole(accessControlState, caller, targetUser, #admin) };
-    };
-  };
-
-  public shared ({ caller }) func saveRacePerformance(performance : RacePerformance) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can save race performances");
-    };
-
-    let currentPerformances = switch (racePerformances.get(caller)) {
-      case (null) { [] };
-      case (?perfs) { perfs };
-    };
-
-    let newPerformances = currentPerformances.concat([performance]);
-    let performancesFiltered =
-      if (newPerformances.size() > 1000) {
-        newPerformances.sliceToArray(0, 1000);
-      } else { newPerformances };
-
-    racePerformances.add(caller, performancesFiltered);
-  };
-
   func shouldUpdateBestPerformance(oldBest : RacePerformance, newPerformance : RacePerformance) : Bool {
     if (oldBest.wpm < newPerformance.wpm) { return true };
     if (oldBest.wpm == newPerformance.wpm and oldBest.accuracy < newPerformance.accuracy) {
@@ -273,214 +310,59 @@ actor {
     false;
   };
 
-  public shared ({ caller }) func updateBestPerformance(perf : RacePerformance) : async Bool {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can update best performances");
-    };
-
-    let oldBest = switch (usersBestPerformance.get(caller)) {
-      case (null) { perf };
-      case (?best) { best };
-    };
-
-    if (shouldUpdateBestPerformance(oldBest, perf)) {
-      usersBestPerformance.add(caller, perf);
-      return true;
-    };
-    false;
-  };
-
-  public query ({ caller }) func getRacePerformances(user : Principal) : async [RacePerformance] {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own race performances");
-    };
-
-    switch (racePerformances.get(user)) {
-      case (null) { [] };
-      case (?perfs) { perfs };
-    };
-  };
-
-  public type LeaderboardType = {
-    #wpmLeaderboard;
-    #accuracyLeaderboard;
-    #combinedLeaderboard;
-  };
-
-  public query func getLeaderboard(lType : LeaderboardType, length : ?Nat) : async [LeaderboardEntry] {
-    let entries = usersBestPerformance.entries().toArray();
-    let sliceLength = switch (length) {
-      case (null) { 100 };
-      case (?l) {
-        if (l > 500 or l <= 0) { 100 } else { l };
-      };
-    };
-
-    let sortedEntries = entries.sort(
-      func(a, b) {
-        switch (lType) {
-          case (#wpmLeaderboard) { RacePerformanceModule.compareByWPM(a, b) };
-          case (#accuracyLeaderboard) { RacePerformanceModule.compareByAccuracy(a, b) };
-          case (#combinedLeaderboard) { RacePerformanceModule.compareCombinedScore(a, b) };
-        };
-      }
-    );
-
-    let safeLength = if (sliceLength > sortedEntries.size()) { sortedEntries.size() } else {
-      sliceLength;
-    };
-
-    let resultEntries = Array.tabulate(
-      safeLength,
-      func(i) { sortedEntries[i] },
-    );
-
-    resultEntries.map<(Principal, RacePerformance), LeaderboardEntry>(
-      func((user, perf)) {
-        {
-          user;
-          wpm = perf.wpm;
-          accuracy = perf.accuracy;
-          combinedScore = perf.wpm * perf.accuracy / 100.0;
-        };
-      }
-    );
-  };
-
-  public shared ({ caller }) func createTeam(teamName : Text) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can create teams");
-    };
-
-    switch (userProfiles.get(caller)) {
-      case (null) { Runtime.trap("User profile not found") };
-      case (?profile) {
-        if (profile.balance < TEAM_CREATE_COST) {
-          Runtime.trap("Insufficient balance to create team");
-        };
-
-        let newTeam : Team = {
-          id = teamCounter;
-          name = teamName;
-          balance = 0;
-          memberLimit = 100;
-          founder = caller;
-          members = Set.empty<Principal>();
-        };
-
-        newTeam.members.add(caller);
-        teams.add(teamCounter, newTeam);
-
-        let updatedProfile = { profile with balance = profile.balance - TEAM_CREATE_COST };
-        userProfiles.add(caller, updatedProfile);
-
-        teamCounter += 1;
-      };
-    };
-  };
-
-  public query ({ caller }) func getTeams() : async [ImmutableTeam] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view teams");
-    };
-
-    let teamsIter = teams.values();
-    let teamsList = teamsIter.toList<Team>();
-    let immutableTeamsList = teamsList.map<Team, ImmutableTeam>(
-      func(team) {
-        {
-          id = team.id;
-          name = team.name;
-          balance = team.balance;
-          memberLimit = team.memberLimit;
-          founder = team.founder;
-          members = team.members.values().toArray();
-        };
-      }
-    );
-    immutableTeamsList.toArray();
-  };
-
-  public shared ({ caller }) func getTeamById(teamId : Nat) : async ?ImmutableTeam {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view team details");
-    };
-
-    switch (teams.get(teamId)) {
-      case (null) { null };
-      case (?team) {
-        ?{
-          id = team.id;
-          name = team.name;
-          balance = team.balance;
-          memberLimit = team.memberLimit;
-          founder = team.founder;
-          members = team.members.values().toArray();
-        };
-      };
-    };
-  };
-
-  private func calculateRaceAward() : Nat {
+  func calculateRaceAward() : Nat {
     let timeBasedValue = Int.abs(Time.now()) % 101;
     900 + timeBasedValue;
   };
 
-  private func creditCoinsInternal(receiver : Principal, amount : Nat) : CreditResult {
-    switch (userProfiles.get(receiver)) {
-      case (null) {
-        { finalBalance = 0; creditAmount = 0; status = 100; message = "User profile not found" };
-      };
-      case (?profile) {
-        let finalBalance = profile.balance + amount;
-        userProfiles.add(receiver, { profile with balance = finalBalance });
-        {
-          finalBalance;
-          creditAmount = amount;
-          status = 200;
-          message = "Credit successful";
+  public shared ({ caller }) func initializeSystem() : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
+      Runtime.trap("Unauthorized: Only admins can initialize system");
+    };
+    if (systemInitialized) {
+      Runtime.trap("System already initialized");
+    };
+    initializeCarCatalog();
+    systemInitialized := true;
+  };
+
+  public query ({ caller }) func getCarCatalog() : async [Car] {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can view car catalog");
+    };
+    initializeCarCatalog();
+    cars.values().toArray();
+  };
+
+  public shared ({ caller }) func buyCar(carId : Nat) : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can buy cars");
+    };
+    initializeCarCatalog();
+
+    switch (cars.get(carId)) {
+      case (null) { Runtime.trap("Car with ID " # carId.toText() # " does not exist") };
+      case (?car) {
+        let user = getUser(caller);
+
+        if (user.balance < car.price) {
+          Runtime.trap("Insufficient balance");
         };
+
+        let updatedBalance = user.balance - car.price;
+
+        let currentInventory = switch (userInventories.get(caller)) {
+          case (null) { { cars = [] } };
+          case (?inventory) { inventory };
+        };
+        let hasCar = currentInventory.cars.any(func(id) { id == carId });
+        if (hasCar) { Runtime.trap("User already owns car") };
+
+        let newCars = currentInventory.cars.concat([carId]);
+        userInventories.add(caller, { currentInventory with cars = newCars });
+
+        updateUserBalance(caller, updatedBalance);
       };
     };
-  };
-
-  public shared ({ caller }) func adminGrantTrpCoins(amount : Nat, user : Principal) : async CreditResult {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
-      Runtime.trap("Unauthorized: Only admins can grant TRP Coins");
-    };
-    creditCoinsInternal(user, amount);
-  };
-
-  public shared ({ caller }) func completeRace() : async CreditResult {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can complete races");
-    };
-    let awardAmount = calculateRaceAward();
-    creditCoinsInternal(caller, awardAmount);
-  };
-
-  public shared ({ caller }) func addHoliday(name : Text, date : Text) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
-      Runtime.trap("Unauthorized: Only admins can add holidays");
-    };
-    holidays.add(
-      holidayCounter,
-      { id = holidayCounter; name; date; enabled = true },
-    );
-    holidayCounter += 1;
-  };
-
-  public shared ({ caller }) func removeHoliday(holidayId : Nat) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
-      Runtime.trap("Unauthorized: Only admins can remove holidays");
-    };
-    holidays.remove(holidayId);
-  };
-
-  public query ({ caller }) func getHolidays() : async [Holiday] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view holidays");
-    };
-    holidays.values().toArray();
   };
 };

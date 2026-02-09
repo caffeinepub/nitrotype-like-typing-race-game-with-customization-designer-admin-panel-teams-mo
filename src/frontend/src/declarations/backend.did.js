@@ -8,12 +8,6 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
-export const CreditResult = IDL.Record({
-  'status' : IDL.Nat,
-  'creditAmount' : IDL.Nat,
-  'message' : IDL.Text,
-  'finalBalance' : IDL.Nat,
-});
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
@@ -31,86 +25,42 @@ export const UserProfile = IDL.Record({
   'bestWPM' : IDL.Float64,
   'accuracy' : IDL.Float64,
 });
-export const Holiday = IDL.Record({
+export const CarColor = IDL.Variant({
+  'red' : IDL.Null,
+  'blue' : IDL.Null,
+  'black' : IDL.Null,
+  'white' : IDL.Null,
+  'yellow' : IDL.Null,
+});
+export const Car = IDL.Record({
   'id' : IDL.Nat,
-  'date' : IDL.Text,
   'name' : IDL.Text,
-  'enabled' : IDL.Bool,
+  'color' : CarColor,
+  'price' : IDL.Nat,
 });
 export const Inventory = IDL.Record({ 'cars' : IDL.Vec(IDL.Nat) });
-export const LeaderboardType = IDL.Variant({
-  'wpmLeaderboard' : IDL.Null,
-  'accuracyLeaderboard' : IDL.Null,
-  'combinedLeaderboard' : IDL.Null,
-});
-export const LeaderboardEntry = IDL.Record({
-  'wpm' : IDL.Float64,
-  'user' : IDL.Principal,
-  'combinedScore' : IDL.Float64,
-  'accuracy' : IDL.Float64,
-});
-export const RacePerformance = IDL.Record({
-  'wpm' : IDL.Float64,
-  'raceTextId' : IDL.Nat,
-  'raceTime' : IDL.Nat,
-  'timestamp' : Time,
-  'accuracy' : IDL.Float64,
-});
-export const ImmutableTeam = IDL.Record({
-  'id' : IDL.Nat,
-  'members' : IDL.Vec(IDL.Principal),
-  'balance' : IDL.Nat,
-  'name' : IDL.Text,
-  'memberLimit' : IDL.Nat,
-  'founder' : IDL.Principal,
-});
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-  'addHoliday' : IDL.Func([IDL.Text, IDL.Text], [], []),
-  'adminGrantTrpCoins' : IDL.Func([IDL.Nat, IDL.Principal], [CreditResult], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-  'completeRace' : IDL.Func([], [CreditResult], []),
-  'createTeam' : IDL.Func([IDL.Text], [], []),
-  'createUserProfile' : IDL.Func([UserProfile], [], []),
+  'buyCar' : IDL.Func([IDL.Nat], [], []),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-  'getHolidays' : IDL.Func([], [IDL.Vec(Holiday)], ['query']),
+  'getCarCatalog' : IDL.Func([], [IDL.Vec(Car)], ['query']),
   'getInventory' : IDL.Func([IDL.Principal], [Inventory], ['query']),
-  'getLeaderboard' : IDL.Func(
-      [LeaderboardType, IDL.Opt(IDL.Nat)],
-      [IDL.Vec(LeaderboardEntry)],
-      ['query'],
-    ),
-  'getRacePerformances' : IDL.Func(
-      [IDL.Principal],
-      [IDL.Vec(RacePerformance)],
-      ['query'],
-    ),
-  'getTeamById' : IDL.Func([IDL.Nat], [IDL.Opt(ImmutableTeam)], []),
-  'getTeams' : IDL.Func([], [IDL.Vec(ImmutableTeam)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'initializeSystem' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'promoteToAdmin' : IDL.Func([IDL.Principal], [], []),
-  'removeHoliday' : IDL.Func([IDL.Nat], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-  'saveRacePerformance' : IDL.Func([RacePerformance], [], []),
-  'updateBestPerformance' : IDL.Func([RacePerformance], [IDL.Bool], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
-  const CreditResult = IDL.Record({
-    'status' : IDL.Nat,
-    'creditAmount' : IDL.Nat,
-    'message' : IDL.Text,
-    'finalBalance' : IDL.Nat,
-  });
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
@@ -128,79 +78,37 @@ export const idlFactory = ({ IDL }) => {
     'bestWPM' : IDL.Float64,
     'accuracy' : IDL.Float64,
   });
-  const Holiday = IDL.Record({
+  const CarColor = IDL.Variant({
+    'red' : IDL.Null,
+    'blue' : IDL.Null,
+    'black' : IDL.Null,
+    'white' : IDL.Null,
+    'yellow' : IDL.Null,
+  });
+  const Car = IDL.Record({
     'id' : IDL.Nat,
-    'date' : IDL.Text,
     'name' : IDL.Text,
-    'enabled' : IDL.Bool,
+    'color' : CarColor,
+    'price' : IDL.Nat,
   });
   const Inventory = IDL.Record({ 'cars' : IDL.Vec(IDL.Nat) });
-  const LeaderboardType = IDL.Variant({
-    'wpmLeaderboard' : IDL.Null,
-    'accuracyLeaderboard' : IDL.Null,
-    'combinedLeaderboard' : IDL.Null,
-  });
-  const LeaderboardEntry = IDL.Record({
-    'wpm' : IDL.Float64,
-    'user' : IDL.Principal,
-    'combinedScore' : IDL.Float64,
-    'accuracy' : IDL.Float64,
-  });
-  const RacePerformance = IDL.Record({
-    'wpm' : IDL.Float64,
-    'raceTextId' : IDL.Nat,
-    'raceTime' : IDL.Nat,
-    'timestamp' : Time,
-    'accuracy' : IDL.Float64,
-  });
-  const ImmutableTeam = IDL.Record({
-    'id' : IDL.Nat,
-    'members' : IDL.Vec(IDL.Principal),
-    'balance' : IDL.Nat,
-    'name' : IDL.Text,
-    'memberLimit' : IDL.Nat,
-    'founder' : IDL.Principal,
-  });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-    'addHoliday' : IDL.Func([IDL.Text, IDL.Text], [], []),
-    'adminGrantTrpCoins' : IDL.Func(
-        [IDL.Nat, IDL.Principal],
-        [CreditResult],
-        [],
-      ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-    'completeRace' : IDL.Func([], [CreditResult], []),
-    'createTeam' : IDL.Func([IDL.Text], [], []),
-    'createUserProfile' : IDL.Func([UserProfile], [], []),
+    'buyCar' : IDL.Func([IDL.Nat], [], []),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-    'getHolidays' : IDL.Func([], [IDL.Vec(Holiday)], ['query']),
+    'getCarCatalog' : IDL.Func([], [IDL.Vec(Car)], ['query']),
     'getInventory' : IDL.Func([IDL.Principal], [Inventory], ['query']),
-    'getLeaderboard' : IDL.Func(
-        [LeaderboardType, IDL.Opt(IDL.Nat)],
-        [IDL.Vec(LeaderboardEntry)],
-        ['query'],
-      ),
-    'getRacePerformances' : IDL.Func(
-        [IDL.Principal],
-        [IDL.Vec(RacePerformance)],
-        ['query'],
-      ),
-    'getTeamById' : IDL.Func([IDL.Nat], [IDL.Opt(ImmutableTeam)], []),
-    'getTeams' : IDL.Func([], [IDL.Vec(ImmutableTeam)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'initializeSystem' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'promoteToAdmin' : IDL.Func([IDL.Principal], [], []),
-    'removeHoliday' : IDL.Func([IDL.Nat], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-    'saveRacePerformance' : IDL.Func([RacePerformance], [], []),
-    'updateBestPerformance' : IDL.Func([RacePerformance], [IDL.Bool], []),
   });
 };
 

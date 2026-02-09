@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { Principal } from '@dfinity/principal';
-import type { CreditResult } from '../backend';
 
 export function useAdminGrantTrpCoins() {
   const { actor } = useActor();
@@ -10,8 +9,8 @@ export function useAdminGrantTrpCoins() {
   return useMutation({
     mutationFn: async ({ amount, user }: { amount: bigint; user: string }) => {
       if (!actor) throw new Error('Actor not available');
-      const principal = Principal.fromText(user);
-      return actor.adminGrantTrpCoins(amount, principal);
+      // Feature temporarily disabled - backend support pending
+      throw new Error('TRP Coins grant feature is not yet available');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
@@ -27,7 +26,8 @@ export function useCompleteRace() {
   return useMutation({
     mutationFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return actor.completeRace();
+      // Feature temporarily disabled - backend support pending
+      return null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });

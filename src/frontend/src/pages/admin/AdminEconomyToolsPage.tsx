@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Coins, CheckCircle, AlertCircle } from 'lucide-react';
+import { Coins, AlertCircle, Info } from 'lucide-react';
 import { useAdminGrantTrpCoins } from '../../hooks/useEconomy';
 import { toast } from 'sonner';
 
@@ -25,18 +25,15 @@ export default function AdminEconomyToolsPage() {
     }
 
     try {
-      const result = await grantCoins.mutateAsync({
+      await grantCoins.mutateAsync({
         amount: BigInt(amount),
         user: principal,
       });
-
-      if (result.status === BigInt(200)) {
-        toast.success(`Successfully granted ${Number(result.creditAmount).toLocaleString()} TRP Coins!`);
-        setPrincipal('');
-        setAmount('');
-      } else {
-        toast.error(result.message || 'Failed to grant TRP Coins');
-      }
+      
+      // If we reach here, the feature is available
+      toast.success(`Successfully granted ${amount} TRP Coins!`);
+      setPrincipal('');
+      setAmount('');
     } catch (error: any) {
       const errorMessage = error?.message || 'Failed to grant TRP Coins';
       toast.error(errorMessage);
@@ -52,6 +49,13 @@ export default function AdminEconomyToolsPage() {
           <p className="text-muted-foreground">Manage TRP Coins and economy settings</p>
         </div>
       </div>
+
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          TRP Coins grant feature is currently unavailable. Backend support is being added.
+        </AlertDescription>
+      </Alert>
 
       <Card>
         <CardHeader>
@@ -73,6 +77,7 @@ export default function AdminEconomyToolsPage() {
                 placeholder="Enter principal ID (e.g., xxxxx-xxxxx-xxxxx-xxxxx-xxx)"
                 value={principal}
                 onChange={(e) => setPrincipal(e.target.value)}
+                disabled
               />
               <p className="text-xs text-muted-foreground">
                 The unique identifier of the user to receive TRP Coins
@@ -88,6 +93,7 @@ export default function AdminEconomyToolsPage() {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 min="1"
+                disabled
               />
               <p className="text-xs text-muted-foreground">
                 The number of TRP Coins to grant (supports large values)
@@ -96,21 +102,12 @@ export default function AdminEconomyToolsPage() {
 
             <Button
               onClick={handleGrant}
-              disabled={grantCoins.isPending || !principal.trim() || !amount.trim()}
+              disabled
               className="w-full"
             >
-              {grantCoins.isPending ? 'Granting...' : 'Grant TRP Coins'}
+              Grant TRP Coins (Coming Soon)
             </Button>
           </div>
-
-          {grantCoins.isSuccess && (
-            <Alert className="border-chart-1/50 bg-chart-1/5">
-              <CheckCircle className="h-4 w-4 text-chart-1" />
-              <AlertDescription>
-                TRP Coins granted successfully! The user's balance has been updated.
-              </AlertDescription>
-            </Alert>
-          )}
         </CardContent>
       </Card>
 
@@ -123,13 +120,13 @@ export default function AdminEconomyToolsPage() {
             <div className="p-4 rounded-lg bg-muted/30">
               <h4 className="font-semibold mb-2">Race Rewards</h4>
               <p className="text-sm text-muted-foreground">
-                Non-practice races award 900-1000 TRP Coins per completion
+                Non-practice races will award TRP Coins per completion (feature coming soon)
               </p>
             </div>
             <div className="p-4 rounded-lg bg-muted/30">
               <h4 className="font-semibold mb-2">Team Creation Cost</h4>
               <p className="text-sm text-muted-foreground">
-                Creating a team costs 50,000 TRP Coins
+                Creating a team will cost TRP Coins (feature coming soon)
               </p>
             </div>
           </div>

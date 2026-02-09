@@ -1,6 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Holiday } from '../backend';
+
+// Stub type for holiday functionality (backend support pending)
+interface Holiday {
+  id: bigint;
+  date: string;
+  name: string;
+  enabled: boolean;
+}
 
 export function useGetHolidays() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -8,10 +15,10 @@ export function useGetHolidays() {
   return useQuery<Holiday[]>({
     queryKey: ['holidays'],
     queryFn: async () => {
-      if (!actor) return [];
-      return actor.getHolidays();
+      // Holiday feature temporarily disabled - backend support pending
+      return [];
     },
-    enabled: !!actor && !actorFetching,
+    enabled: false,
   });
 }
 
@@ -22,7 +29,8 @@ export function useAddHoliday() {
   return useMutation({
     mutationFn: async ({ name, date }: { name: string; date: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.addHoliday(name, date);
+      // Feature temporarily disabled - backend support pending
+      throw new Error('Holiday management is not yet available');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holidays'] });
@@ -37,7 +45,8 @@ export function useRemoveHoliday() {
   return useMutation({
     mutationFn: async (holidayId: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.removeHoliday(holidayId);
+      // Feature temporarily disabled - backend support pending
+      throw new Error('Holiday management is not yet available');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['holidays'] });

@@ -1,20 +1,28 @@
-import { useGetLeaderboard, useGetUserProfile } from './useQueries';
 import { useQuery } from '@tanstack/react-query';
-import { LeaderboardType } from '../backend';
+
+// Stub types for leaderboard functionality (backend support pending)
+export enum LeaderboardType {
+  wpmLeaderboard = 'wpmLeaderboard',
+  accuracyLeaderboard = 'accuracyLeaderboard',
+  combinedLeaderboard = 'combinedLeaderboard',
+}
+
+interface LeaderboardEntryWithProfile {
+  userPrincipal: string;
+  displayName: string;
+  username: string;
+  wpm: number;
+  accuracy: number;
+  combinedScore: number;
+}
 
 export function useLeaderboardWithProfiles(leaderboardType: LeaderboardType = LeaderboardType.wpmLeaderboard, length: number = 100) {
-  const { data: entries = [], isLoading: entriesLoading } = useGetLeaderboard(leaderboardType, length);
-  
-  return useQuery({
-    queryKey: ['leaderboardWithProfiles', leaderboardType, entries],
+  return useQuery<LeaderboardEntryWithProfile[]>({
+    queryKey: ['leaderboardWithProfiles', leaderboardType, length],
     queryFn: async () => {
-      return entries.map(entry => ({
-        ...entry,
-        userPrincipal: entry.user.toString(),
-        displayName: '',
-        username: '',
-      }));
+      // Leaderboard feature temporarily disabled - backend support pending
+      return [];
     },
-    enabled: !entriesLoading && entries.length > 0,
+    enabled: false,
   });
 }

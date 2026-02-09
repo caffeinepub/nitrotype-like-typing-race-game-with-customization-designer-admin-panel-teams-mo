@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { Principal } from '@dfinity/principal';
-import type { UserProfile, Inventory, LeaderboardEntry, UserRole, RacePerformance } from '../backend';
-import { LeaderboardType } from '../backend';
+import type { UserProfile, Inventory, UserRole, Car } from '../backend';
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -67,19 +66,6 @@ export function useGetInventory(userPrincipal: string | null) {
   });
 }
 
-export function useGetLeaderboard(leaderboardType: LeaderboardType = LeaderboardType.wpmLeaderboard, length: number = 100) {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery<LeaderboardEntry[]>({
-    queryKey: ['leaderboard', leaderboardType, length],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getLeaderboard(leaderboardType, BigInt(length));
-    },
-    enabled: !!actor && !actorFetching,
-  });
-}
-
 export function usePromoteToAdmin() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -87,7 +73,8 @@ export function usePromoteToAdmin() {
   return useMutation({
     mutationFn: async (targetUser: Principal) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.promoteToAdmin(targetUser);
+      // Use assignCallerUserRole to promote to admin
+      return actor.assignCallerUserRole(targetUser, { admin: null } as any);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['isAdmin'] });
@@ -113,36 +100,40 @@ export function useRevokeAdmin() {
   });
 }
 
-export function useSaveRacePerformance() {
+export function useGetCarCatalog() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<Car[]>({
+    queryKey: ['carCatalog'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getCarCatalog();
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
+export function useBuyCar() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (performance: RacePerformance) => {
+    mutationFn: async (carId: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      await actor.saveRacePerformance(performance);
-      await actor.updateBestPerformance(performance);
+      return actor.buyCar(carId);
     },
     onSuccess: () => {
+      // Invalidate inventory and profile (balance) after purchase
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
-      queryClient.invalidateQueries({ queryKey: ['raceHistory'] });
     },
   });
 }
 
-export function useGetRaceHistory(userPrincipal: string | null) {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery<RacePerformance[]>({
-    queryKey: ['raceHistory', userPrincipal],
-    queryFn: async () => {
-      if (!actor || !userPrincipal) return [];
-      const principal = Principal.fromText(userPrincipal);
-      const performances = await actor.getRacePerformances(principal);
-      // Sort by timestamp descending (most recent first)
-      return performances.sort((a, b) => Number(b.timestamp - a.timestamp));
-    },
-    enabled: !!actor && !actorFetching && !!userPrincipal,
-  });
+// Helper to map car IDs to catalog entries
+export function useCarById(carId: bigint | null) {
+  const { data: catalog } = useGetCarCatalog();
+  
+  if (!carId || !catalog) return null;
+  return catalog.find(car => car.id === carId) || null;
 }

@@ -89,42 +89,15 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface LeaderboardEntry {
-    wpm: number;
-    user: Principal;
-    combinedScore: number;
-    accuracy: number;
+export interface Car {
+    id: bigint;
+    name: string;
+    color: CarColor;
+    price: bigint;
 }
 export type Time = bigint;
 export interface Inventory {
     cars: Array<bigint>;
-}
-export interface ImmutableTeam {
-    id: bigint;
-    members: Array<Principal>;
-    balance: bigint;
-    name: string;
-    memberLimit: bigint;
-    founder: Principal;
-}
-export interface RacePerformance {
-    wpm: number;
-    raceTextId: bigint;
-    raceTime: bigint;
-    timestamp: Time;
-    accuracy: number;
-}
-export interface CreditResult {
-    status: bigint;
-    creditAmount: bigint;
-    message: string;
-    finalBalance: bigint;
-}
-export interface Holiday {
-    id: bigint;
-    date: string;
-    name: string;
-    enabled: boolean;
 }
 export interface UserProfile {
     username: string;
@@ -137,10 +110,12 @@ export interface UserProfile {
     bestWPM: number;
     accuracy: number;
 }
-export enum LeaderboardType {
-    wpmLeaderboard = "wpmLeaderboard",
-    accuracyLeaderboard = "accuracyLeaderboard",
-    combinedLeaderboard = "combinedLeaderboard"
+export enum CarColor {
+    red = "red",
+    blue = "blue",
+    black = "black",
+    white = "white",
+    yellow = "yellow"
 }
 export enum UserRole {
     admin = "admin",
@@ -149,29 +124,18 @@ export enum UserRole {
 }
 export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
-    addHoliday(name: string, date: string): Promise<void>;
-    adminGrantTrpCoins(amount: bigint, user: Principal): Promise<CreditResult>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    completeRace(): Promise<CreditResult>;
-    createTeam(teamName: string): Promise<void>;
-    createUserProfile(profile: UserProfile): Promise<void>;
+    buyCar(carId: bigint): Promise<void>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getHolidays(): Promise<Array<Holiday>>;
+    getCarCatalog(): Promise<Array<Car>>;
     getInventory(user: Principal): Promise<Inventory>;
-    getLeaderboard(lType: LeaderboardType, length: bigint | null): Promise<Array<LeaderboardEntry>>;
-    getRacePerformances(user: Principal): Promise<Array<RacePerformance>>;
-    getTeamById(teamId: bigint): Promise<ImmutableTeam | null>;
-    getTeams(): Promise<Array<ImmutableTeam>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    initializeSystem(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
-    promoteToAdmin(targetUser: Principal): Promise<void>;
-    removeHoliday(holidayId: bigint): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    saveRacePerformance(performance: RacePerformance): Promise<void>;
-    updateBestPerformance(perf: RacePerformance): Promise<boolean>;
 }
-import type { ImmutableTeam as _ImmutableTeam, LeaderboardType as _LeaderboardType, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
+import type { Car as _Car, CarColor as _CarColor, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -185,34 +149,6 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor._initializeAccessControlWithSecret(arg0);
-            return result;
-        }
-    }
-    async addHoliday(arg0: string, arg1: string): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.addHoliday(arg0, arg1);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.addHoliday(arg0, arg1);
-            return result;
-        }
-    }
-    async adminGrantTrpCoins(arg0: bigint, arg1: Principal): Promise<CreditResult> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.adminGrantTrpCoins(arg0, arg1);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.adminGrantTrpCoins(arg0, arg1);
             return result;
         }
     }
@@ -230,45 +166,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async completeRace(): Promise<CreditResult> {
+    async buyCar(arg0: bigint): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.completeRace();
+                const result = await this.actor.buyCar(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.completeRace();
-            return result;
-        }
-    }
-    async createTeam(arg0: string): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.createTeam(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.createTeam(arg0);
-            return result;
-        }
-    }
-    async createUserProfile(arg0: UserProfile): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.createUserProfile(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.createUserProfile(arg0);
+            const result = await this.actor.buyCar(arg0);
             return result;
         }
     }
@@ -300,18 +208,18 @@ export class Backend implements backendInterface {
             return from_candid_UserRole_n4(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getHolidays(): Promise<Array<Holiday>> {
+    async getCarCatalog(): Promise<Array<Car>> {
         if (this.processError) {
             try {
-                const result = await this.actor.getHolidays();
-                return result;
+                const result = await this.actor.getCarCatalog();
+                return from_candid_vec_n6(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getHolidays();
-            return result;
+            const result = await this.actor.getCarCatalog();
+            return from_candid_vec_n6(this._uploadFile, this._downloadFile, result);
         }
     }
     async getInventory(arg0: Principal): Promise<Inventory> {
@@ -325,62 +233,6 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getInventory(arg0);
-            return result;
-        }
-    }
-    async getLeaderboard(arg0: LeaderboardType, arg1: bigint | null): Promise<Array<LeaderboardEntry>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getLeaderboard(to_candid_LeaderboardType_n6(this._uploadFile, this._downloadFile, arg0), to_candid_opt_n8(this._uploadFile, this._downloadFile, arg1));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getLeaderboard(to_candid_LeaderboardType_n6(this._uploadFile, this._downloadFile, arg0), to_candid_opt_n8(this._uploadFile, this._downloadFile, arg1));
-            return result;
-        }
-    }
-    async getRacePerformances(arg0: Principal): Promise<Array<RacePerformance>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getRacePerformances(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getRacePerformances(arg0);
-            return result;
-        }
-    }
-    async getTeamById(arg0: bigint): Promise<ImmutableTeam | null> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getTeamById(arg0);
-                return from_candid_opt_n9(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getTeamById(arg0);
-            return from_candid_opt_n9(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getTeams(): Promise<Array<ImmutableTeam>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getTeams();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getTeams();
             return result;
         }
     }
@@ -398,6 +250,20 @@ export class Backend implements backendInterface {
             return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
         }
     }
+    async initializeSystem(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.initializeSystem();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.initializeSystem();
+            return result;
+        }
+    }
     async isCallerAdmin(): Promise<boolean> {
         if (this.processError) {
             try {
@@ -409,34 +275,6 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.isCallerAdmin();
-            return result;
-        }
-    }
-    async promoteToAdmin(arg0: Principal): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.promoteToAdmin(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.promoteToAdmin(arg0);
-            return result;
-        }
-    }
-    async removeHoliday(arg0: bigint): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.removeHoliday(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.removeHoliday(arg0);
             return result;
         }
     }
@@ -454,34 +292,12 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async saveRacePerformance(arg0: RacePerformance): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.saveRacePerformance(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.saveRacePerformance(arg0);
-            return result;
-        }
-    }
-    async updateBestPerformance(arg0: RacePerformance): Promise<boolean> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.updateBestPerformance(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.updateBestPerformance(arg0);
-            return result;
-        }
-    }
+}
+function from_candid_CarColor_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CarColor): CarColor {
+    return from_candid_variant_n10(_uploadFile, _downloadFile, value);
+}
+function from_candid_Car_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Car): Car {
+    return from_candid_record_n8(_uploadFile, _downloadFile, value);
 }
 function from_candid_UserRole_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
     return from_candid_variant_n5(_uploadFile, _downloadFile, value);
@@ -489,8 +305,36 @@ function from_candid_UserRole_n4(_uploadFile: (file: ExternalBlob) => Promise<Ui
 function from_candid_opt_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ImmutableTeam]): ImmutableTeam | null {
-    return value.length === 0 ? null : value[0];
+function from_candid_record_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
+    name: string;
+    color: _CarColor;
+    price: bigint;
+}): {
+    id: bigint;
+    name: string;
+    color: CarColor;
+    price: bigint;
+} {
+    return {
+        id: value.id,
+        name: value.name,
+        color: from_candid_CarColor_n9(_uploadFile, _downloadFile, value.color),
+        price: value.price
+    };
+}
+function from_candid_variant_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    red: null;
+} | {
+    blue: null;
+} | {
+    black: null;
+} | {
+    white: null;
+} | {
+    yellow: null;
+}): CarColor {
+    return "red" in value ? CarColor.red : "blue" in value ? CarColor.blue : "black" in value ? CarColor.black : "white" in value ? CarColor.white : "yellow" in value ? CarColor.yellow : value;
 }
 function from_candid_variant_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
@@ -501,14 +345,11 @@ function from_candid_variant_n5(_uploadFile: (file: ExternalBlob) => Promise<Uin
 }): UserRole {
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
 }
-function to_candid_LeaderboardType_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: LeaderboardType): _LeaderboardType {
-    return to_candid_variant_n7(_uploadFile, _downloadFile, value);
+function from_candid_vec_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Car>): Array<Car> {
+    return value.map((x)=>from_candid_Car_n7(_uploadFile, _downloadFile, x));
 }
 function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n2(_uploadFile, _downloadFile, value);
-}
-function to_candid_opt_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: bigint | null): [] | [bigint] {
-    return value === null ? candid_none() : candid_some(value);
 }
 function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
     admin: null;
@@ -523,21 +364,6 @@ function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         user: null
     } : value == UserRole.guest ? {
         guest: null
-    } : value;
-}
-function to_candid_variant_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: LeaderboardType): {
-    wpmLeaderboard: null;
-} | {
-    accuracyLeaderboard: null;
-} | {
-    combinedLeaderboard: null;
-} {
-    return value == LeaderboardType.wpmLeaderboard ? {
-        wpmLeaderboard: null
-    } : value == LeaderboardType.accuracyLeaderboard ? {
-        accuracyLeaderboard: null
-    } : value == LeaderboardType.combinedLeaderboard ? {
-        combinedLeaderboard: null
     } : value;
 }
 export interface CreateActorOptions {
