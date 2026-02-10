@@ -13,12 +13,43 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const Season = IDL.Variant({
+  'winter' : IDL.Null,
+  'autumn' : IDL.Null,
+  'summer' : IDL.Null,
+  'spring' : IDL.Null,
+});
+export const UpdateAssistantAction = IDL.Variant({
+  'grantCoins' : IDL.Null,
+  'unbanUser' : IDL.Record({
+    'adminActor' : IDL.Principal,
+    'targetUser' : IDL.Principal,
+  }),
+  'banUser' : IDL.Record({
+    'userId' : IDL.Principal,
+    'adminActor' : IDL.Principal,
+  }),
+  'changeSeason' : IDL.Record({
+    'desiredSeason' : Season,
+    'adminActor' : IDL.Principal,
+  }),
+  'setUserBalance' : IDL.Record({
+    'adminActor' : IDL.Principal,
+    'newBalance' : IDL.Nat,
+    'targetUser' : IDL.Principal,
+  }),
+});
+export const UpdateAssistantResult = IDL.Variant({
+  'error' : IDL.Record({ 'error' : IDL.Text }),
+  'success' : IDL.Text,
+});
 export const Time = IDL.Int;
 export const UserProfile = IDL.Record({
   'username' : IDL.Text,
   'balance' : IDL.Nat,
   'displayName' : IDL.Text,
   'createdAt' : Time,
+  'banned' : IDL.Bool,
   'totalMessagesSent' : IDL.Nat,
   'racesPlayed' : IDL.Nat,
   'averageWPM' : IDL.Float64,
@@ -50,11 +81,18 @@ export const GrantCoinsResult = IDL.Variant({
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'banUser' : IDL.Func([IDL.Principal], [], []),
   'buyCar' : IDL.Func([IDL.Nat], [], []),
+  'executeAssistantInstruction' : IDL.Func(
+      [UpdateAssistantAction],
+      [IDL.Opt(UpdateAssistantResult)],
+      [],
+    ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getCarCatalog' : IDL.Func([], [IDL.Vec(Car)], ['query']),
   'getInventory' : IDL.Func([IDL.Principal], [Inventory], ['query']),
+  'getSeason' : IDL.Func([], [Season], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -64,6 +102,9 @@ export const idlService = IDL.Service({
   'initializeSystem' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'setBalance' : IDL.Func([IDL.Principal, IDL.Nat], [], []),
+  'setSeason' : IDL.Func([Season], [], []),
+  'unbanUser' : IDL.Func([IDL.Principal], [], []),
 });
 
 export const idlInitArgs = [];
@@ -74,12 +115,43 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
+  const Season = IDL.Variant({
+    'winter' : IDL.Null,
+    'autumn' : IDL.Null,
+    'summer' : IDL.Null,
+    'spring' : IDL.Null,
+  });
+  const UpdateAssistantAction = IDL.Variant({
+    'grantCoins' : IDL.Null,
+    'unbanUser' : IDL.Record({
+      'adminActor' : IDL.Principal,
+      'targetUser' : IDL.Principal,
+    }),
+    'banUser' : IDL.Record({
+      'userId' : IDL.Principal,
+      'adminActor' : IDL.Principal,
+    }),
+    'changeSeason' : IDL.Record({
+      'desiredSeason' : Season,
+      'adminActor' : IDL.Principal,
+    }),
+    'setUserBalance' : IDL.Record({
+      'adminActor' : IDL.Principal,
+      'newBalance' : IDL.Nat,
+      'targetUser' : IDL.Principal,
+    }),
+  });
+  const UpdateAssistantResult = IDL.Variant({
+    'error' : IDL.Record({ 'error' : IDL.Text }),
+    'success' : IDL.Text,
+  });
   const Time = IDL.Int;
   const UserProfile = IDL.Record({
     'username' : IDL.Text,
     'balance' : IDL.Nat,
     'displayName' : IDL.Text,
     'createdAt' : Time,
+    'banned' : IDL.Bool,
     'totalMessagesSent' : IDL.Nat,
     'racesPlayed' : IDL.Nat,
     'averageWPM' : IDL.Float64,
@@ -111,11 +183,18 @@ export const idlFactory = ({ IDL }) => {
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'banUser' : IDL.Func([IDL.Principal], [], []),
     'buyCar' : IDL.Func([IDL.Nat], [], []),
+    'executeAssistantInstruction' : IDL.Func(
+        [UpdateAssistantAction],
+        [IDL.Opt(UpdateAssistantResult)],
+        [],
+      ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getCarCatalog' : IDL.Func([], [IDL.Vec(Car)], ['query']),
     'getInventory' : IDL.Func([IDL.Principal], [Inventory], ['query']),
+    'getSeason' : IDL.Func([], [Season], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
@@ -125,6 +204,9 @@ export const idlFactory = ({ IDL }) => {
     'initializeSystem' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'setBalance' : IDL.Func([IDL.Principal, IDL.Nat], [], []),
+    'setSeason' : IDL.Func([Season], [], []),
+    'unbanUser' : IDL.Func([IDL.Principal], [], []),
   });
 };
 

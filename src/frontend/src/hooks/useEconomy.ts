@@ -36,6 +36,30 @@ export function useAdminGrantTrpCoins() {
   });
 }
 
+export function useAdminSetBalance() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ targetUser, newBalance }: { targetUser: string; newBalance: bigint }) => {
+      if (!actor) throw new Error('Actor not available');
+      
+      let targetPrincipal: Principal;
+      try {
+        targetPrincipal = Principal.fromText(targetUser);
+      } catch (error) {
+        throw new Error('Invalid principal ID format');
+      }
+
+      return actor.setBalance(targetPrincipal, newBalance);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+    },
+  });
+}
+
 export function useCompleteRace() {
   const { actor } = useActor();
   const queryClient = useQueryClient();

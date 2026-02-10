@@ -42,6 +42,7 @@ export default function ProfileSetupDialog() {
         accuracy: 0,
         balance: BigInt(100), // Starting balance
         totalMessagesSent: BigInt(0),
+        banned: false,
       });
       toast.success('Profile created successfully!');
     } catch (error) {

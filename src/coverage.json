@@ -1,38 +1,41 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T02:26:00.552Z",
+  "generatedAt": "2026-02-10T03:02:26.007Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 2,
+    "implemented": 0,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Publish the game by building and deploying the latest version so the currently committed frontend and backend canisters are upgraded and the live URL serves the newest build.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/index.html",
-          "frontend/PUBLISH_RUNBOOK.md"
-        ],
-        "matchedFiles": [
-          "frontend/index.html",
-          "frontend/PUBLISH_RUNBOOK.md"
-        ]
+        "summary": "Update backend admin-role assignment so that the user whose in-game username is exactly \"@Admin\" (after trimming leading/trailing spaces) is granted the admin role in the access control system when they save their profile (both on initial profile creation and on subsequent profile updates).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Fix backend logic so that saving a new user profile does not automatically grant admin privileges to every new user; admin auto-grant should only apply to the intended bootstrap policy (first 5 profiles) and the special \"@Admin\" username.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/PUBLISH_RUNBOOK.md",
-    "frontend/index.html",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

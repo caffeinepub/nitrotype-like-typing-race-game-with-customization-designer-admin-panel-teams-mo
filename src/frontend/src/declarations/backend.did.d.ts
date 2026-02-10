@@ -24,12 +24,30 @@ export type CarColor = { 'red' : null } |
 export type GrantCoinsResult = { 'error' : string } |
   { 'success' : { 'grantedAmount' : bigint, 'finalBalance' : bigint } };
 export interface Inventory { 'cars' : Array<bigint> }
+export type Season = { 'winter' : null } |
+  { 'autumn' : null } |
+  { 'summer' : null } |
+  { 'spring' : null };
 export type Time = bigint;
+export type UpdateAssistantAction = { 'grantCoins' : null } |
+  { 'unbanUser' : { 'adminActor' : Principal, 'targetUser' : Principal } } |
+  { 'banUser' : { 'userId' : Principal, 'adminActor' : Principal } } |
+  { 'changeSeason' : { 'desiredSeason' : Season, 'adminActor' : Principal } } |
+  {
+    'setUserBalance' : {
+      'adminActor' : Principal,
+      'newBalance' : bigint,
+      'targetUser' : Principal,
+    }
+  };
+export type UpdateAssistantResult = { 'error' : { 'error' : string } } |
+  { 'success' : string };
 export interface UserProfile {
   'username' : string,
   'balance' : bigint,
   'displayName' : string,
   'createdAt' : Time,
+  'banned' : boolean,
   'totalMessagesSent' : bigint,
   'racesPlayed' : bigint,
   'averageWPM' : number,
@@ -42,16 +60,25 @@ export type UserRole = { 'admin' : null } |
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'banUser' : ActorMethod<[Principal], undefined>,
   'buyCar' : ActorMethod<[bigint], undefined>,
+  'executeAssistantInstruction' : ActorMethod<
+    [UpdateAssistantAction],
+    [] | [UpdateAssistantResult]
+  >,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCarCatalog' : ActorMethod<[], Array<Car>>,
   'getInventory' : ActorMethod<[Principal], Inventory>,
+  'getSeason' : ActorMethod<[], Season>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'grantCoins' : ActorMethod<[Principal, bigint], GrantCoinsResult>,
   'initializeSystem' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'setBalance' : ActorMethod<[Principal, bigint], undefined>,
+  'setSeason' : ActorMethod<[Season], undefined>,
+  'unbanUser' : ActorMethod<[Principal], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

@@ -9,6 +9,79 @@ export interface ParsedCommand {
 export function parseAdminCommand(input: string): ParsedCommand {
   const trimmed = input.trim().toLowerCase();
   
+  // Set balance
+  if (trimmed.includes('set') && trimmed.includes('balance')) {
+    const amountMatch = input.match(/(\d+)/);
+    const userMatch = input.match(/(?:for|to)\s+(?:user\s+)?(\S+)/i);
+    
+    if (!amountMatch) {
+      return { action: 'setBalance', params: {}, isValid: false, error: 'Missing balance amount' };
+    }
+    
+    if (!userMatch) {
+      return { action: 'setBalance', params: {}, isValid: false, error: 'Missing user principal ID' };
+    }
+    
+    return {
+      action: 'setBalance',
+      params: {
+        amount: parseInt(amountMatch[1]),
+        user: userMatch[1],
+      },
+      isValid: true,
+    };
+  }
+  
+  // Ban user
+  if (trimmed.startsWith('ban') && trimmed.includes('user')) {
+    const userMatch = input.match(/ban\s+(?:user\s+)?(\S+)/i);
+    
+    if (!userMatch) {
+      return { action: 'banUser', params: {}, isValid: false, error: 'Missing user principal ID' };
+    }
+    
+    return {
+      action: 'banUser',
+      params: { user: userMatch[1] },
+      isValid: true,
+    };
+  }
+  
+  // Unban user
+  if (trimmed.startsWith('unban') && trimmed.includes('user')) {
+    const userMatch = input.match(/unban\s+(?:user\s+)?(\S+)/i);
+    
+    if (!userMatch) {
+      return { action: 'unbanUser', params: {}, isValid: false, error: 'Missing user principal ID' };
+    }
+    
+    return {
+      action: 'unbanUser',
+      params: { user: userMatch[1] },
+      isValid: true,
+    };
+  }
+  
+  // Set season
+  if (trimmed.includes('set') && trimmed.includes('season')) {
+    const seasonMatch = input.match(/season\s+(?:to\s+)?(\w+)/i);
+    
+    if (!seasonMatch) {
+      return { action: 'setSeason', params: {}, isValid: false, error: 'Missing season name' };
+    }
+    
+    const season = seasonMatch[1].toLowerCase();
+    if (!['winter', 'spring', 'summer', 'autumn', 'fall'].includes(season)) {
+      return { action: 'setSeason', params: {}, isValid: false, error: 'Invalid season. Use: winter, spring, summer, autumn/fall' };
+    }
+    
+    return {
+      action: 'setSeason',
+      params: { season },
+      isValid: true,
+    };
+  }
+  
   // Create title
   if (trimmed.startsWith('create') && trimmed.includes('title')) {
     const nameMatch = input.match(/called ['"]([^'"]+)['"]/i);
@@ -88,6 +161,6 @@ export function parseAdminCommand(input: string): ParsedCommand {
     action: 'unknown',
     params: {},
     isValid: false,
-    error: 'Command not recognized. Try: "Create a title called \'X\' rarity Y price Z", "Set MOTD to \'message\'", "Add text: \'content\' category: X", "Grant 1000 TRP coins to user"',
+    error: 'Command not recognized. Try: "Set balance to 10000 for user [principal]", "Ban user [principal]", "Unban user [principal]", "Set season to winter"',
   };
 }

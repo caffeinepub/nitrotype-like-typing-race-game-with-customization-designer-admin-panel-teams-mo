@@ -5,25 +5,32 @@
   "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
-  "existing_features": [
-    {
-      "id": "feature-publish-the-game-by-building-and-deploying-the-latest-version-so-the-currently-committed-frontend-and-backend-canisters-are-upgraded-and-the-live-url-serves-the-newest-build",
-      "title": "Publish the game by building and deploying the latest version so the currently committed frontend and backend canisters are upgraded and the live URL serves the newest build.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    }
-  ],
+  "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Publish/deploy the game (build and make the latest version live)",
+      "summary": "Grant the @Admin user/admin role in-game (ensure @Admin has admin privileges in the game).",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Update backend admin-role assignment so that the user whose in-game username is exactly \"@Admin\" (after trimming leading/trailing spaces) is granted the admin role in the access control system when they save their profile (both on initial profile creation and on subsequent profile updates).",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Fix backend logic so that saving a new user profile does not automatically grant admin privileges to every new user; admin auto-grant should only apply to the intended bootstrap policy (first 5 profiles) and the special \"@Admin\" username.",
+      "reqIds": [
+        "REQ-2"
+      ],
       "status": "pending"
     }
   ],
-  "projectName": "Publish the game (build and deploy latest version)",
+  "projectName": "Grant @Admin user in-game admin privileges",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

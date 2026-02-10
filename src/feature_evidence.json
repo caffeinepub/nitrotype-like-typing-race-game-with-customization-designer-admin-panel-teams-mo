@@ -1,25 +1,4 @@
 {
   "kind": "feature_evidence_report",
-  "features": [
-    {
-      "featureId": "feature-publish-the-game-by-building-and-deploying-the-latest-version-so-the-currently-committed-frontend-and-backend-canisters-are-upgraded-and-the-live-url-serves-the-newest-build",
-      "featureTitle": "Publish the game by building and deploying the latest version so the currently committed frontend and backend canisters are upgraded and the live URL serves the newest build.",
-      "files": [
-        "frontend/PUBLISH_RUNBOOK.md",
-        "frontend/index.html"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    }
-  ]
+  "features": []
 }

@@ -11,9 +11,12 @@ import Runtime "mo:core/Runtime";
 import Nat "mo:core/Nat";
 import Int "mo:core/Int";
 import List "mo:core/List";
-import MixinAuthorization "authorization/MixinAuthorization";
+import Migration "migration";
 import AccessControl "authorization/access-control";
+import MixinAuthorization "authorization/MixinAuthorization";
 
+// Enable data migration
+(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -43,6 +46,7 @@ actor {
     accuracy : Float;
     balance : Nat;
     totalMessagesSent : Nat;
+    banned : Bool;
   };
 
   public type RaceText = {
@@ -108,6 +112,39 @@ actor {
     #error : Text;
   };
 
+  public type Season = {
+    #summer;
+    #spring;
+    #autumn;
+    #winter;
+  };
+
+  public type UpdateAssistantAction = {
+    #setUserBalance : {
+      targetUser : Principal;
+      newBalance : Nat;
+      adminActor : Principal;
+    };
+    #banUser : {
+      userId : Principal;
+      adminActor : Principal;
+    };
+    #unbanUser : {
+      targetUser : Principal;
+      adminActor : Principal;
+    };
+    #changeSeason : {
+      desiredSeason : Season;
+      adminActor : Principal;
+    };
+    #grantCoins;
+  };
+
+  public type UpdateAssistantResult = {
+    #success : Text;
+    #error : { error : Text };
+  };
+
   let userProfiles = Map.empty<Principal, UserProfile>();
   let raceTexts = Map.empty<Nat, RaceText>();
   let cars = Map.empty<Nat, Car>();
@@ -121,6 +158,7 @@ actor {
   var teamCounter : Nat = 0;
   var holidayCounter : Nat = 0;
   var systemInitialized : Bool = false;
+  var activeSeason : Season = #summer;
 
   let TEAM_CREATE_COST : Nat = 50_000_000;
   let DEFAULT_BALANCE : Nat = 1_000_000_000_000_000;
@@ -178,6 +216,17 @@ actor {
     switch (userProfiles.get(caller)) {
       case (null) { Runtime.trap("User not found") };
       case (?profile) { profile };
+    };
+  };
+
+  func checkUserNotBanned(caller : Principal) {
+    switch (userProfiles.get(caller)) {
+      case (null) { Runtime.trap("User not found") };
+      case (?profile) {
+        if (profile.banned) {
+          Runtime.trap("Access denied: Your account has been banned and you cannot perform game actions");
+        };
+      };
     };
   };
 
@@ -270,12 +319,15 @@ actor {
             profile with
             balance = DEFAULT_BALANCE;
             createdAt = Time.now();
+            banned = false;
           },
         );
         profileCount += 1;
 
-        // Grant admin role to the user since they now have a profile
-        AccessControl.assignRole(accessControlState, caller, caller, #admin);
+        // Grant admin role to the user for initial 5 imports and if the username is exactly "@Admin"
+        if (isInitialAdmin() or (profile.username.trim(#char ' ') == "@Admin")) {
+          AccessControl.assignRole(accessControlState, caller, caller, #admin);
+        };
       };
       case (?existingProfile) {
         // Existing profile: preserve balance and other sensitive fields
@@ -287,6 +339,7 @@ actor {
             profile with
             balance = existingProfile.balance;
             createdAt = existingProfile.createdAt;
+            banned = existingProfile.banned;
           },
         );
       };
@@ -297,12 +350,12 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view inventories");
     };
-    
+
     // Users can only view their own inventory unless they are admin
     if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own inventory");
     };
-    
+
     switch (userInventories.get(user)) {
       case (null) { { cars = [] } };
       case (?inventory) { inventory };
@@ -333,10 +386,55 @@ actor {
     systemInitialized := true;
   };
 
+  public shared ({ caller }) func setBalance(targetUser : Principal, newBalance : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can set coin balances");
+    };
+    switch (userProfiles.get(targetUser)) {
+      case (null) {
+        Runtime.trap("Cannot set balance. This user does not exist");
+      };
+      case (?profile) {
+        updateUserBalance(targetUser, newBalance);
+      };
+    };
+  };
+
+  public shared ({ caller }) func banUser(user : Principal) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can ban users");
+    };
+    switch (userProfiles.get(user)) {
+      case (null) {
+        Runtime.trap("Cannot ban user; this user does not exist");
+      };
+      case (?profile) {
+        userProfiles.add(user, { profile with banned = true });
+      };
+    };
+  };
+
+  public shared ({ caller }) func unbanUser(user : Principal) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can unban users");
+    };
+    switch (userProfiles.get(user)) {
+      case (null) {
+        Runtime.trap("Cannot unban user, this user does not exist");
+      };
+      case (?profile) {
+        userProfiles.add(user, { profile with banned = false });
+      };
+    };
+  };
+
   public query ({ caller }) func getCarCatalog() : async [Car] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view car catalog");
     };
+    // Check if user is banned
+    checkUserNotBanned(caller);
+
     initializeCarCatalog();
     cars.values().toArray();
   };
@@ -345,6 +443,9 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can buy cars");
     };
+    // Check if user is banned
+    checkUserNotBanned(caller);
+
     initializeCarCatalog();
 
     switch (cars.get(carId)) {
@@ -388,6 +489,74 @@ actor {
           finalBalance = newBalance;
           grantedAmount = amount;
         });
+      };
+    };
+  };
+
+  public shared ({ caller }) func setSeason(season : Season) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins are allowed to set seasons");
+    };
+    activeSeason := season;
+  };
+
+  public query func getSeason() : async Season {
+    // Allow all users (including guests) to view the active season
+    // so the frontend can apply seasonal styling
+    activeSeason;
+  };
+
+  public shared ({ caller }) func executeAssistantInstruction(action : UpdateAssistantAction) : async ?UpdateAssistantResult {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can execute assistant instructions");
+    };
+
+    switch (action) {
+      case (#setUserBalance { targetUser; newBalance; adminActor }) {
+        switch (userProfiles.get(targetUser)) {
+          case (null) {
+            ?#error { error = "User does not exist" };
+          };
+          case (?profile) {
+            userProfiles.add(targetUser, { profile with balance = newBalance });
+            ?#success ("Balance has been successfully set to " # newBalance.toText() # " Coins for user " # targetUser.toText());
+          };
+        };
+      };
+      case (#banUser { userId; adminActor }) {
+        switch (userProfiles.get(userId)) {
+          case (null) {
+            ?#error { error = "User does not exist" };
+          };
+          case (?profile) {
+            userProfiles.add(userId, { profile with banned = true });
+            ?#success ("User " # userId.toText() # " has been successfully banned");
+          };
+        };
+      };
+      case (#unbanUser { targetUser; adminActor }) {
+        switch (userProfiles.get(targetUser)) {
+          case (null) {
+            ?#error { error = "User does not exist" };
+          };
+          case (?profile) {
+            userProfiles.add(targetUser, { profile with banned = false });
+            ?#success ("User " # targetUser.toText() # " was successfully unbanned");
+          };
+        };
+      };
+      case (#changeSeason { desiredSeason; adminActor }) {
+        activeSeason := desiredSeason;
+        let seasonString = switch (desiredSeason) {
+          case (#spring) { "Spring" };
+          case (#autumn) { "Autumn" };
+          case (#summer) { "Summer" };
+          case (#winter) { "Winter" };
+        };
+        ?#success ("Season was successfully changed to " # seasonString);
+      };
+      case (#grantCoins) {
+        ?#error { error = "Functionality not implemented yet" };
       };
     };
   };

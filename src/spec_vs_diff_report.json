@@ -1,92 +1,47 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T02:26:00.549Z",
-  "summary": "The diff does not show any build/deploy automation or release action for upgrading frontend assets and backend canisters. Instead, it adds a publish runbook and introduces multiple new frontend/backend product features and UI routes, which conflicts with the publish-only constraint.",
+  "generatedAt": "2026-02-10T03:02:26.005Z",
+  "summary": "The diff adds a migration module and enables migration in the backend actor, plus updates project_state.json. The truncated backend/main.mo snippet does not show any changes to saveCallerUserProfile or to admin-role assignment logic, so the requested @Admin role assignment and the fix to avoid granting admin to all new users cannot be verified as implemented from the provided diff summary.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Publish the game by building and deploying the latest version so the currently committed frontend and backend canisters are upgraded and the live URL serves the newest build.",
-      "reason": "No evidence in the diff summary of actual deployment configuration, CI/CD changes, canister deployment commands, versioning, or release artifacts that would perform a new deployment/upgrade. The added content is documentation and code changes, not a deployment action.",
+      "requirement": "Update backend admin-role assignment so that the user whose in-game username is exactly \"@Admin\" (after trimming leading/trailing spaces) is granted the admin role in the access control system when they save their profile (both on initial profile creation and on subsequent profile updates).",
+      "reason": "The diff summary for backend/main.mo is truncated and does not show any modifications to saveCallerUserProfile or any explicit logic that trims the username and assigns an admin role when it equals \"@Admin\".",
       "evidence": [
-        "frontend/PUBLISH_RUNBOOK.md",
-        "project_state.json"
+        "backend/main.mo (truncated)"
       ]
     },
     {
-      "id": "REQ-1",
-      "requirement": "Basic smoke-check passes on the live deployment: user can load '/', navigate to '/race', and Internet Identity authentication works.",
-      "reason": "The diff includes documentation describing smoke-check steps, but no evidence of deployment execution, test automation, or changes specifically ensuring the live environment is updated and verified. The diff summary does not provide evidence that these checks were actually performed or wired into a publish pipeline.",
+      "id": "REQ-2",
+      "requirement": "Fix backend logic so that saving a new user profile does not automatically grant admin privileges to every new user; admin auto-grant should only apply to the intended bootstrap policy (first 5 profiles) and the special \"@Admin\" username.",
+      "reason": "The provided snippet only shows an isInitialAdmin() helper (profileCount < 5) but does not show any role-assignment logic during profile save, nor evidence that non-@Admin users beyond the first 5 profiles do not receive admin. With truncation, implementation cannot be confirmed.",
       "evidence": [
-        "frontend/PUBLISH_RUNBOOK.md"
+        "backend/main.mo (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added cache-busting meta directives in frontend HTML (Cache-Control/Pragma/Expires).",
-      "reason": "BuildRequest asked to publish/verify without introducing product/UI changes. This is a runtime behavior change to the frontend document not explicitly requested.",
+      "description": "Added data migration scaffolding and enabled migration on the backend actor.",
+      "reason": "The BuildRequest does not mention adding migrations; it focuses on admin-role assignment behavior during profile save. The diff introduces a new migration module and enables it in backend/main.mo.",
       "evidence": [
-        "frontend/index.html"
+        "backend/migration.mo",
+        "backend/main.mo (with migration = Migration.run)"
       ]
     },
     {
-      "description": "New frontend route and navigation for a '/system' page (System link).",
-      "reason": "BuildRequest explicitly disallows new product features or UI changes as part of publish request.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/App.tsx, frontend/src/components/layout/AppLayout.tsx)"
-      ]
-    },
-    {
-      "description": "Admin/authorization UI and hooks (AdminGuard, AccessDeniedScreen, AdminAuditLog, useAdmin, admin role management in queries, admin command parser).",
-      "reason": "Non-goals include adding admin features; also violates no-new-features constraint for publish-only request.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/admin/*, frontend/src/hooks/useAdmin.ts, frontend/src/hooks/useQueries.ts, frontend/src/lib/adminCommandParser.ts)",
-        "backend/main.mo (authorization imports/mixins visible)"
-      ]
-    },
-    {
-      "description": "Message of the Day and teams/leaderboards hook stubs added.",
-      "reason": "These are new feature scaffolds not requested as part of publishing/deploying.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/hooks/useMotd.ts, frontend/src/hooks/useTeams.ts, frontend/src/hooks/useLeaderboards.ts)"
-      ]
-    },
-    {
-      "description": "Multiple UI/feature changes across gameplay/pages (dashboard stats/quick actions, race lobby modes including 'Custom Text', 3D car viewer/track visualization, race results changes, profile/customize/shop interactions).",
-      "reason": "BuildRequest forbids new gameplay mechanics, economy features, or design changes for publish-only task; these appear to be significant feature/UI additions per file summaries.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/pages/DashboardPage.tsx, RaceLobbyPage.tsx, RacePage.tsx, RaceResultsPage.tsx, ProfilePage.tsx, CustomizePage.tsx)"
-      ]
-    },
-    {
-      "description": "Backend data model and functionality changes (new types: teams, holidays, leaderboards, race performance; new maps/state variables; access control mixin).",
-      "reason": "Publish request should not add new backend product features; these are substantial domain additions beyond deployment.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "description": "Added a publish/deployment verification runbook file.",
-      "reason": "Documentation is not requested by REQ-1 (which is to perform deployment). While helpful, it is additional scope not required to satisfy the publish action itself.",
-      "evidence": [
-        "frontend/PUBLISH_RUNBOOK.md"
-      ]
-    },
-    {
-      "description": "Updated project_state.json tracking new feature requests unrelated to performing an actual deployment.",
-      "reason": "This does not contribute to building/deploying canisters; it is extra process/state tracking not requested by REQ-1.",
+      "description": "Introduced/updated project tracking metadata in project_state.json with new feature request entries.",
+      "reason": "The BuildRequest does not request adding or modifying project_state.json; this appears to be auxiliary metadata rather than implementing the backend requirements.",
       "evidence": [
         "project_state.json"
       ]
     }
   ],
-  "confidence": 0.78,
+  "confidence": 0.55,
   "changed_files": [
     "backend/main.mo",
-    "frontend-file-summaries.txt",
-    "frontend/PUBLISH_RUNBOOK.md",
-    "frontend/index.html",
+    "backend/migration.mo",
     "project_state.json"
   ]
 }

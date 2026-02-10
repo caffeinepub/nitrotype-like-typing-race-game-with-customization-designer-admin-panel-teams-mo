@@ -27,6 +27,7 @@ import AdminEconomyToolsPage from './pages/admin/AdminEconomyToolsPage';
 import AdminMotdPage from './pages/admin/AdminMotdPage';
 import AdminManagementPage from './pages/admin/AdminManagementPage';
 import AdminUpdateAssistantPage from './pages/admin/AdminUpdateAssistantPage';
+import AdminBanManagementPage from './pages/admin/AdminBanManagementPage';
 import AdminGuard from './components/admin/AdminGuard';
 import ProfileSetupDialog from './components/auth/ProfileSetupDialog';
 import { ThemeProvider } from 'next-themes';
@@ -252,6 +253,16 @@ const adminAssistantRoute = createRoute({
   ),
 });
 
+const adminBanManagementRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/bans',
+  component: () => (
+    <AdminGuard>
+      <AdminBanManagementPage />
+    </AdminGuard>
+  ),
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   raceLobbyRoute,
@@ -279,6 +290,7 @@ const routeTree = rootRoute.addChildren([
   adminMotdRoute,
   adminManagementRoute,
   adminAssistantRoute,
+  adminBanManagementRoute,
 ]);
 
 const router = createRouter({ routeTree });

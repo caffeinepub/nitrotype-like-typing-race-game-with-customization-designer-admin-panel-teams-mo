@@ -109,23 +109,68 @@ export type GrantCoinsResult = {
         finalBalance: bigint;
     };
 };
+export type UpdateAssistantResult = {
+    __kind__: "error";
+    error: {
+        error: string;
+    };
+} | {
+    __kind__: "success";
+    success: string;
+};
 export interface UserProfile {
     username: string;
     balance: bigint;
     displayName: string;
     createdAt: Time;
+    banned: boolean;
     totalMessagesSent: bigint;
     racesPlayed: bigint;
     averageWPM: number;
     bestWPM: number;
     accuracy: number;
 }
+export type UpdateAssistantAction = {
+    __kind__: "grantCoins";
+    grantCoins: null;
+} | {
+    __kind__: "unbanUser";
+    unbanUser: {
+        adminActor: Principal;
+        targetUser: Principal;
+    };
+} | {
+    __kind__: "banUser";
+    banUser: {
+        userId: Principal;
+        adminActor: Principal;
+    };
+} | {
+    __kind__: "changeSeason";
+    changeSeason: {
+        desiredSeason: Season;
+        adminActor: Principal;
+    };
+} | {
+    __kind__: "setUserBalance";
+    setUserBalance: {
+        adminActor: Principal;
+        newBalance: bigint;
+        targetUser: Principal;
+    };
+};
 export enum CarColor {
     red = "red",
     blue = "blue",
     black = "black",
     white = "white",
     yellow = "yellow"
+}
+export enum Season {
+    winter = "winter",
+    autumn = "autumn",
+    summer = "summer",
+    spring = "spring"
 }
 export enum UserRole {
     admin = "admin",
@@ -135,18 +180,24 @@ export enum UserRole {
 export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    banUser(user: Principal): Promise<void>;
     buyCar(carId: bigint): Promise<void>;
+    executeAssistantInstruction(action: UpdateAssistantAction): Promise<UpdateAssistantResult | null>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCarCatalog(): Promise<Array<Car>>;
     getInventory(user: Principal): Promise<Inventory>;
+    getSeason(): Promise<Season>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     grantCoins(targetUser: Principal, amount: bigint): Promise<GrantCoinsResult>;
     initializeSystem(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    setBalance(targetUser: Principal, newBalance: bigint): Promise<void>;
+    setSeason(season: Season): Promise<void>;
+    unbanUser(user: Principal): Promise<void>;
 }
-import type { Car as _Car, CarColor as _CarColor, GrantCoinsResult as _GrantCoinsResult, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
+import type { Car as _Car, CarColor as _CarColor, GrantCoinsResult as _GrantCoinsResult, Season as _Season, UpdateAssistantAction as _UpdateAssistantAction, UpdateAssistantResult as _UpdateAssistantResult, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -177,6 +228,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async banUser(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.banUser(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.banUser(arg0);
+            return result;
+        }
+    }
     async buyCar(arg0: bigint): Promise<void> {
         if (this.processError) {
             try {
@@ -191,46 +256,60 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async executeAssistantInstruction(arg0: UpdateAssistantAction): Promise<UpdateAssistantResult | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.executeAssistantInstruction(to_candid_UpdateAssistantAction_n3(this._uploadFile, this._downloadFile, arg0));
+                return from_candid_opt_n8(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.executeAssistantInstruction(to_candid_UpdateAssistantAction_n3(this._uploadFile, this._downloadFile, arg0));
+            return from_candid_opt_n8(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getCallerUserProfile(): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
-                return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n11(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserProfile();
-            return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n11(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n4(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n12(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n4(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n12(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCarCatalog(): Promise<Array<Car>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCarCatalog();
-                return from_candid_vec_n6(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCarCatalog();
-            return from_candid_vec_n6(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n14(this._uploadFile, this._downloadFile, result);
         }
     }
     async getInventory(arg0: Principal): Promise<Inventory> {
@@ -247,32 +326,46 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getSeason(): Promise<Season> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getSeason();
+                return from_candid_Season_n19(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getSeason();
+            return from_candid_Season_n19(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
-                return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n11(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getUserProfile(arg0);
-            return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n11(this._uploadFile, this._downloadFile, result);
         }
     }
     async grantCoins(arg0: Principal, arg1: bigint): Promise<GrantCoinsResult> {
         if (this.processError) {
             try {
                 const result = await this.actor.grantCoins(arg0, arg1);
-                return from_candid_GrantCoinsResult_n11(this._uploadFile, this._downloadFile, result);
+                return from_candid_GrantCoinsResult_n21(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.grantCoins(arg0, arg1);
-            return from_candid_GrantCoinsResult_n11(this._uploadFile, this._downloadFile, result);
+            return from_candid_GrantCoinsResult_n21(this._uploadFile, this._downloadFile, result);
         }
     }
     async initializeSystem(): Promise<void> {
@@ -317,23 +410,74 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async setBalance(arg0: Principal, arg1: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setBalance(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setBalance(arg0, arg1);
+            return result;
+        }
+    }
+    async setSeason(arg0: Season): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setSeason(to_candid_Season_n6(this._uploadFile, this._downloadFile, arg0));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setSeason(to_candid_Season_n6(this._uploadFile, this._downloadFile, arg0));
+            return result;
+        }
+    }
+    async unbanUser(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.unbanUser(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.unbanUser(arg0);
+            return result;
+        }
+    }
 }
-function from_candid_CarColor_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CarColor): CarColor {
+function from_candid_CarColor_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CarColor): CarColor {
+    return from_candid_variant_n18(_uploadFile, _downloadFile, value);
+}
+function from_candid_Car_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Car): Car {
+    return from_candid_record_n16(_uploadFile, _downloadFile, value);
+}
+function from_candid_GrantCoinsResult_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _GrantCoinsResult): GrantCoinsResult {
+    return from_candid_variant_n22(_uploadFile, _downloadFile, value);
+}
+function from_candid_Season_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Season): Season {
+    return from_candid_variant_n20(_uploadFile, _downloadFile, value);
+}
+function from_candid_UpdateAssistantResult_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UpdateAssistantResult): UpdateAssistantResult {
     return from_candid_variant_n10(_uploadFile, _downloadFile, value);
 }
-function from_candid_Car_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Car): Car {
-    return from_candid_record_n8(_uploadFile, _downloadFile, value);
+function from_candid_UserRole_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n13(_uploadFile, _downloadFile, value);
 }
-function from_candid_GrantCoinsResult_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _GrantCoinsResult): GrantCoinsResult {
-    return from_candid_variant_n12(_uploadFile, _downloadFile, value);
-}
-function from_candid_UserRole_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n5(_uploadFile, _downloadFile, value);
-}
-function from_candid_opt_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+function from_candid_opt_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_record_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_opt_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UpdateAssistantResult]): UpdateAssistantResult | null {
+    return value.length === 0 ? null : from_candid_UpdateAssistantResult_n9(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     name: string;
     color: _CarColor;
@@ -347,11 +491,43 @@ function from_candid_record_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint
     return {
         id: value.id,
         name: value.name,
-        color: from_candid_CarColor_n9(_uploadFile, _downloadFile, value.color),
+        color: from_candid_CarColor_n17(_uploadFile, _downloadFile, value.color),
         price: value.price
     };
 }
 function from_candid_variant_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    error: {
+        error: string;
+    };
+} | {
+    success: string;
+}): {
+    __kind__: "error";
+    error: {
+        error: string;
+    };
+} | {
+    __kind__: "success";
+    success: string;
+} {
+    return "error" in value ? {
+        __kind__: "error",
+        error: value.error
+    } : "success" in value ? {
+        __kind__: "success",
+        success: value.success
+    } : value;
+}
+function from_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    admin: null;
+} | {
+    user: null;
+} | {
+    guest: null;
+}): UserRole {
+    return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
+}
+function from_candid_variant_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     red: null;
 } | {
     blue: null;
@@ -364,7 +540,18 @@ function from_candid_variant_n10(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): CarColor {
     return "red" in value ? CarColor.red : "blue" in value ? CarColor.blue : "black" in value ? CarColor.black : "white" in value ? CarColor.white : "yellow" in value ? CarColor.yellow : value;
 }
-function from_candid_variant_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    winter: null;
+} | {
+    autumn: null;
+} | {
+    summer: null;
+} | {
+    spring: null;
+}): Season {
+    return "winter" in value ? Season.winter : "autumn" in value ? Season.autumn : "summer" in value ? Season.summer : "spring" in value ? Season.spring : value;
+}
+function from_candid_variant_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     error: string;
 } | {
     success: {
@@ -389,20 +576,29 @@ function from_candid_variant_n12(_uploadFile: (file: ExternalBlob) => Promise<Ui
         success: value.success
     } : value;
 }
-function from_candid_variant_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    admin: null;
-} | {
-    user: null;
-} | {
-    guest: null;
-}): UserRole {
-    return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
+function from_candid_vec_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Car>): Array<Car> {
+    return value.map((x)=>from_candid_Car_n15(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Car>): Array<Car> {
-    return value.map((x)=>from_candid_Car_n7(_uploadFile, _downloadFile, x));
+function to_candid_Season_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Season): _Season {
+    return to_candid_variant_n7(_uploadFile, _downloadFile, value);
+}
+function to_candid_UpdateAssistantAction_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UpdateAssistantAction): _UpdateAssistantAction {
+    return to_candid_variant_n4(_uploadFile, _downloadFile, value);
 }
 function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n2(_uploadFile, _downloadFile, value);
+}
+function to_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    desiredSeason: Season;
+    adminActor: Principal;
+}): {
+    desiredSeason: _Season;
+    adminActor: Principal;
+} {
+    return {
+        desiredSeason: to_candid_Season_n6(_uploadFile, _downloadFile, value.desiredSeason),
+        adminActor: value.adminActor
+    };
 }
 function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
     admin: null;
@@ -417,6 +613,89 @@ function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         user: null
     } : value == UserRole.guest ? {
         guest: null
+    } : value;
+}
+function to_candid_variant_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    __kind__: "grantCoins";
+    grantCoins: null;
+} | {
+    __kind__: "unbanUser";
+    unbanUser: {
+        adminActor: Principal;
+        targetUser: Principal;
+    };
+} | {
+    __kind__: "banUser";
+    banUser: {
+        userId: Principal;
+        adminActor: Principal;
+    };
+} | {
+    __kind__: "changeSeason";
+    changeSeason: {
+        desiredSeason: Season;
+        adminActor: Principal;
+    };
+} | {
+    __kind__: "setUserBalance";
+    setUserBalance: {
+        adminActor: Principal;
+        newBalance: bigint;
+        targetUser: Principal;
+    };
+}): {
+    grantCoins: null;
+} | {
+    unbanUser: {
+        adminActor: Principal;
+        targetUser: Principal;
+    };
+} | {
+    banUser: {
+        userId: Principal;
+        adminActor: Principal;
+    };
+} | {
+    changeSeason: {
+        desiredSeason: _Season;
+        adminActor: Principal;
+    };
+} | {
+    setUserBalance: {
+        adminActor: Principal;
+        newBalance: bigint;
+        targetUser: Principal;
+    };
+} {
+    return value.__kind__ === "grantCoins" ? {
+        grantCoins: value.grantCoins
+    } : value.__kind__ === "unbanUser" ? {
+        unbanUser: value.unbanUser
+    } : value.__kind__ === "banUser" ? {
+        banUser: value.banUser
+    } : value.__kind__ === "changeSeason" ? {
+        changeSeason: to_candid_record_n5(_uploadFile, _downloadFile, value.changeSeason)
+    } : value.__kind__ === "setUserBalance" ? {
+        setUserBalance: value.setUserBalance
+    } : value;
+}
+function to_candid_variant_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Season): {
+    winter: null;
+} | {
+    autumn: null;
+} | {
+    summer: null;
+} | {
+    spring: null;
+} {
+    return value == Season.winter ? {
+        winter: null
+    } : value == Season.autumn ? {
+        autumn: null
+    } : value == Season.summer ? {
+        summer: null
+    } : value == Season.spring ? {
+        spring: null
     } : value;
 }
 export interface CreateActorOptions {

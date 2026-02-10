@@ -1,28 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Publish build: cache-bust and deployment verification docs (frontend-only)",
-  "requirements": [
-    {
-      "id": "REQ-1",
-      "summary": "Ensure the deployed frontend serves the latest build reliably (no stale cached bundle) and provide a publish/smoke-check runbook for the live URL verification flow.",
-      "acceptanceCriteria": [
-        "A new deployment is performed for both frontend assets and the backend canister(s), upgrading to the latest source in the repository.",
-        "The live application loads without errors and reflects the latest deployed build (no stale cached bundle served).",
-        "Basic smoke-check passes on the live deployment: user can load the Dashboard route ('/'), navigate to Race Lobby ('/race'), and authentication via Internet Identity still works."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/index.html",
-          "operation": "modify",
-          "description": "Add standard cache-busting/no-cache meta directives (e.g., Cache-Control/Pragma/Expires) to reduce the risk of clients receiving a stale cached bundle after deployment; keep the document structure and app behavior unchanged."
-        },
-        {
-          "path": "frontend/PUBLISH_RUNBOOK.md",
-          "operation": "create",
-          "description": "Document the exact publish workflow and post-deploy smoke-check steps focused on: hard-refresh guidance to avoid stale caches, verifying '/' and '/race' routes load, and confirming Internet Identity login/logout works on the live URL; do not introduce new product features or UI changes."
-        }
-      ]
-    }
-  ]
+  "title": "Grant @Admin user in-game admin privileges (frontend-only)",
+  "requirements": []
 }

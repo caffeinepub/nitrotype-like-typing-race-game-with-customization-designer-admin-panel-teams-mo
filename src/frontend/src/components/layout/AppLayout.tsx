@@ -1,6 +1,7 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
-import { useIsAdmin } from '../../hooks/useAdmin';
+import { useGetCallerUserProfile } from '../../hooks/useQueries';
+import { useGetSeason } from '../../hooks/useSeason';
 import { Button } from '@/components/ui/button';
 import { generatedAssets } from '../../assets/generatedAssets';
 import {
@@ -15,6 +16,7 @@ import {
   LogIn,
   Home,
   Calendar,
+  Shield,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -25,13 +27,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useQueryClient } from '@tanstack/react-query';
 import { SiCaffeine } from 'react-icons/si';
+import { Season } from '../../backend';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { identity, login, clear, isLoggingIn } = useInternetIdentity();
-  const { data: isAdmin } = useIsAdmin();
+  const { data: userProfile, isLoading: profileLoading } = useGetCallerUserProfile();
+  const { data: season } = useGetSeason();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isAuthenticated = !!identity;
+
+  // Show admin link if user is authenticated and has a saved profile
+  const showAdminLink = isAuthenticated && !profileLoading && !!userProfile;
 
   const handleAuth = async () => {
     if (isAuthenticated) {
@@ -50,9 +57,42 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Get seasonal background
+  const getSeasonalBackground = () => {
+    if (!season) return '';
+    
+    switch (season) {
+      case Season.winter:
+        return `url(${generatedAssets.seasonWinterBg})`;
+      case Season.spring:
+        return `url(${generatedAssets.seasonSpringBg})`;
+      case Season.summer:
+        return `url(${generatedAssets.seasonSummerBg})`;
+      case Season.autumn:
+        return `url(${generatedAssets.seasonFallBg})`;
+      default:
+        return '';
+    }
+  };
+
+  const seasonalBg = getSeasonalBackground();
+
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-accent/5">
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+    <div className="min-h-screen flex flex-col bg-background relative">
+      {/* Seasonal background overlay */}
+      {seasonalBg && (
+        <div 
+          className="fixed inset-0 opacity-[0.03] pointer-events-none z-0"
+          style={{
+            backgroundImage: seasonalBg,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+      )}
+
+      <header className="border-b border-accent/30 bg-card/80 backdrop-blur-md sticky top-0 z-50 shadow-lg shadow-accent/5">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3 group">
@@ -61,7 +101,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 alt="TypeRacer Pro"
                 className="h-10 w-10 transition-transform group-hover:scale-110"
               />
-              <span className="text-2xl font-bold bg-gradient-to-r from-primary via-chart-1 to-chart-2 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-accent via-accent to-accent/80 bg-clip-text text-transparent">
                 TypeRacer Pro
               </span>
             </Link>
@@ -110,10 +150,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     System
                   </Link>
                 </Button>
-                {isAdmin && (
+                {showAdminLink && (
                   <Button variant="ghost" size="sm" asChild>
                     <Link to="/admin">
-                      <SettingsIcon className="h-4 w-4 mr-2" />
+                      <Shield className="h-4 w-4 mr-2" />
                       Admin
                     </Link>
                   </Button>
@@ -161,18 +201,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto px-4 py-8">{children}</main>
+      <main className="flex-1 container mx-auto px-4 py-8 relative z-10">{children}</main>
 
-      <footer className="border-t border-border/50 bg-card/30 backdrop-blur-sm mt-auto">
+      <footer className="border-t border-accent/30 bg-card/80 backdrop-blur-md mt-auto relative z-10">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()}. Built with <SiCaffeine className="inline h-4 w-4 text-chart-1" /> using{' '}
+              © {new Date().getFullYear()}. Built with <SiCaffeine className="inline h-4 w-4 text-accent" /> using{' '}
               <a
                 href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-accent hover:underline"
               >
                 caffeine.ai
               </a>

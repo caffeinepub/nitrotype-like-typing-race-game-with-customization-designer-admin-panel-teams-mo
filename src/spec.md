@@ -1,11 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Publish the game by building and deploying the latest version so the live URL serves the newest frontend and upgraded backend canister(s).
+**Goal:** Ensure the in-game username “@Admin” is granted backend admin privileges when saving a profile, while preventing unintended admin auto-grants for other new users.
 
 **Planned changes:**
-- Build and deploy the latest frontend assets and backend canister(s) from the current repository source.
-- Verify the live deployment is serving the newest build (no stale cached bundle).
-- Perform a basic live smoke-check: load Dashboard (`/`), navigate to Race Lobby (`/race`), and confirm Internet Identity authentication works.
+- Update backend profile-save logic so that when the saved username (trimmed) equals exactly "@Admin", the caller is assigned the admin role during both initial profile creation and subsequent profile updates.
+- Fix backend admin auto-grant behavior so new profiles do not automatically receive admin privileges except for the intended bootstrap policy (first 5 profiles) and the special "@Admin" username.
 
-**User-visible outcome:** The live game URL loads the most recently deployed version without errors, and core navigation/auth flows work as expected.
+**User-visible outcome:** A player who saves their profile as “@Admin” is recognized as an admin by backend admin-check APIs, and other new users are not incorrectly granted admin privileges beyond the initial bootstrap policy.

@@ -1,45 +1,54 @@
 {
   "kind": "build_request",
-  "title": "Publish the game (build and deploy latest version)",
+  "title": "Grant @Admin user in-game admin privileges",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Publish the game by building and deploying the latest version so the currently committed frontend and backend canisters are upgraded and the live URL serves the newest build.",
-      "target": "unknown",
+      "text": "Update backend admin-role assignment so that the user whose in-game username is exactly \"@Admin\" (after trimming leading/trailing spaces) is granted the admin role in the access control system when they save their profile (both on initial profile creation and on subsequent profile updates).",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-3"
         ],
         "quotes": [
-          "publish game"
+          "make @Admin in the game an admin"
         ]
       },
       "acceptanceCriteria": [
-        "A new deployment is performed for both frontend assets and the backend canister(s), upgrading to the latest source in the repository.",
-        "The live application loads without errors and reflects the latest deployed build (no stale cached bundle served).",
-        "Basic smoke-check passes on the live deployment: user can load the Dashboard route ('/'), navigate to Race Lobby ('/race'), and authentication via Internet Identity still works."
+        "When a user saves a profile with username \"@Admin\" (ignoring leading/trailing spaces), subsequent calls to the backend admin-check APIs (e.g., isCallerAdmin / getCallerUserRole) indicate the caller is an admin.",
+        "The role assignment happens during saveCallerUserProfile so it works even if the @Admin profile already exists (user can re-save the profile to receive admin role)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Fix backend logic so that saving a new user profile does not automatically grant admin privileges to every new user; admin auto-grant should only apply to the intended bootstrap policy (first 5 profiles) and the special \"@Admin\" username.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "make @Admin in the game an admin"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Creating a new profile with a username other than \"@Admin\" does not grant admin role unless the profile is within the initial bootstrap policy (first 5 profiles).",
+        "Creating new profiles beyond the bootstrap policy (after the first 5) does not grant admin role unless the username is \"@Admin\"."
       ]
     }
   ],
   "constraints": [
-    "Do not introduce new product features or UI changes as part of the publish request; only build/deploy and verify the latest version is live."
+    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
+    "Do not edit frontend immutable paths listed in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Adding new gameplay mechanics, economy features, admin features, or design changes."
+    "Adding new UI for granting admin by username.",
+    "Changing how Internet Identity authentication works.",
+    "Implementing new admin features beyond ensuring @Admin has admin role."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }
