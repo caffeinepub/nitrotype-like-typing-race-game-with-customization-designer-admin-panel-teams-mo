@@ -99,6 +99,16 @@ export type Time = bigint;
 export interface Inventory {
     cars: Array<bigint>;
 }
+export type GrantCoinsResult = {
+    __kind__: "error";
+    error: string;
+} | {
+    __kind__: "success";
+    success: {
+        grantedAmount: bigint;
+        finalBalance: bigint;
+    };
+};
 export interface UserProfile {
     username: string;
     balance: bigint;
@@ -131,11 +141,12 @@ export interface backendInterface {
     getCarCatalog(): Promise<Array<Car>>;
     getInventory(user: Principal): Promise<Inventory>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    grantCoins(targetUser: Principal, amount: bigint): Promise<GrantCoinsResult>;
     initializeSystem(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
 }
-import type { Car as _Car, CarColor as _CarColor, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
+import type { Car as _Car, CarColor as _CarColor, GrantCoinsResult as _GrantCoinsResult, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -250,6 +261,20 @@ export class Backend implements backendInterface {
             return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
         }
     }
+    async grantCoins(arg0: Principal, arg1: bigint): Promise<GrantCoinsResult> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.grantCoins(arg0, arg1);
+                return from_candid_GrantCoinsResult_n11(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.grantCoins(arg0, arg1);
+            return from_candid_GrantCoinsResult_n11(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async initializeSystem(): Promise<void> {
         if (this.processError) {
             try {
@@ -299,6 +324,9 @@ function from_candid_CarColor_n9(_uploadFile: (file: ExternalBlob) => Promise<Ui
 function from_candid_Car_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Car): Car {
     return from_candid_record_n8(_uploadFile, _downloadFile, value);
 }
+function from_candid_GrantCoinsResult_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _GrantCoinsResult): GrantCoinsResult {
+    return from_candid_variant_n12(_uploadFile, _downloadFile, value);
+}
 function from_candid_UserRole_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
     return from_candid_variant_n5(_uploadFile, _downloadFile, value);
 }
@@ -335,6 +363,31 @@ function from_candid_variant_n10(_uploadFile: (file: ExternalBlob) => Promise<Ui
     yellow: null;
 }): CarColor {
     return "red" in value ? CarColor.red : "blue" in value ? CarColor.blue : "black" in value ? CarColor.black : "white" in value ? CarColor.white : "yellow" in value ? CarColor.yellow : value;
+}
+function from_candid_variant_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    error: string;
+} | {
+    success: {
+        grantedAmount: bigint;
+        finalBalance: bigint;
+    };
+}): {
+    __kind__: "error";
+    error: string;
+} | {
+    __kind__: "success";
+    success: {
+        grantedAmount: bigint;
+        finalBalance: bigint;
+    };
+} {
+    return "error" in value ? {
+        __kind__: "error",
+        error: value.error
+    } : "success" in value ? {
+        __kind__: "success",
+        success: value.success
+    } : value;
 }
 function from_candid_variant_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;

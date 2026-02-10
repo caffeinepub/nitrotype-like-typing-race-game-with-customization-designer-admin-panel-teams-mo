@@ -17,6 +17,16 @@ export type Time = bigint;
 export interface Inventory {
     cars: Array<bigint>;
 }
+export type GrantCoinsResult = {
+    __kind__: "error";
+    error: string;
+} | {
+    __kind__: "success";
+    success: {
+        grantedAmount: bigint;
+        finalBalance: bigint;
+    };
+};
 export interface UserProfile {
     username: string;
     balance: bigint;
@@ -48,6 +58,7 @@ export interface backendInterface {
     getCarCatalog(): Promise<Array<Car>>;
     getInventory(user: Principal): Promise<Inventory>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    grantCoins(targetUser: Principal, amount: bigint): Promise<GrantCoinsResult>;
     initializeSystem(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;

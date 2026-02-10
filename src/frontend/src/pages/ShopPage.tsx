@@ -38,18 +38,20 @@ export default function ShopPage() {
     return acc;
   }, {} as Record<string, typeof catalog>) || {};
 
-  // Initialize default selected colors for each model (first available color)
+  // Initialize default selected colors for each model
   useEffect(() => {
-    if (catalog && Object.keys(selectedColors).length === 0) {
-      const defaultColors: Record<string, CarColor> = {};
-      Object.entries(carsByModel).forEach(([modelName, variants]) => {
-        if (variants.length > 0) {
-          defaultColors[modelName] = variants[0].color;
-        }
+    if (catalog && catalog.length > 0) {
+      setSelectedColors(prev => {
+        const newColors: Record<string, CarColor> = { ...prev };
+        Object.entries(carsByModel).forEach(([modelName, variants]) => {
+          if (variants.length > 0 && !newColors[modelName]) {
+            newColors[modelName] = variants[0].color;
+          }
+        });
+        return newColors;
       });
-      setSelectedColors(defaultColors);
     }
-  }, [catalog, carsByModel]);
+  }, [catalog]);
 
   if (!identity) {
     return (
@@ -94,7 +96,7 @@ export default function ShopPage() {
   const getSelectedVariant = (modelName: string) => {
     const selectedColor = selectedColors[modelName];
     if (!selectedColor) return null;
-    return carsByModel[modelName].find(v => v.color === selectedColor);
+    return carsByModel[modelName]?.find(v => v.color === selectedColor);
   };
 
   return (
@@ -155,6 +157,7 @@ export default function ShopPage() {
                 const selectedVariant = getSelectedVariant(modelName);
                 const variantOwned = selectedVariant ? isOwned(selectedVariant.id) : false;
                 const canAfford = profile ? profile.balance >= basePrice : false;
+                const currentColor = selectedColors[modelName] || variants[0]?.color || CarColor.blue;
 
                 return (
                   <Card key={modelName} className="overflow-hidden">
@@ -176,12 +179,10 @@ export default function ShopPage() {
                     <CardContent className="space-y-4">
                       {/* 3D Car Preview */}
                       <div className="w-full h-64 rounded-lg overflow-hidden bg-gradient-to-b from-background to-muted/30 border">
-                        {selectedColors[modelName] && (
-                          <CarViewer3D 
-                            modelName={modelName} 
-                            color={selectedColors[modelName]} 
-                          />
-                        )}
+                        <CarViewer3D 
+                          modelName={modelName} 
+                          color={currentColor} 
+                        />
                       </div>
 
                       <div>

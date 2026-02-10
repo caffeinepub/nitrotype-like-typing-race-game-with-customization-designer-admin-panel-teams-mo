@@ -13,10 +13,7 @@ import Int "mo:core/Int";
 import List "mo:core/List";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import Migration "migration";
 
-// Specify the data migration function in with-clause
-(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -104,6 +101,11 @@ actor {
     creditAmount : Nat;
     status : Nat;
     message : Text;
+  };
+
+  public type GrantCoinsResult = {
+    #success : { finalBalance : Nat; grantedAmount : Nat };
+    #error : Text;
   };
 
   let userProfiles = Map.empty<Principal, UserProfile>();
@@ -238,21 +240,21 @@ actor {
   };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access profiles");
     };
     userProfiles.get(caller);
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own profile");
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view profiles");
     };
     userProfiles.get(user);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
 
@@ -260,10 +262,8 @@ actor {
     switch (userProfiles.get(caller)) {
       case (null) {
         // New profile: validate username and set default balance
-        if (not AccessControl.isAdmin(accessControlState, caller)) {
-          validateUniqueUsername(profile.username);
-        };
-        
+        validateUniqueUsername(profile.username);
+
         userProfiles.add(
           caller,
           {
@@ -273,13 +273,14 @@ actor {
           },
         );
         profileCount += 1;
+
+        // Grant admin role to the user since they now have a profile
+        AccessControl.assignRole(accessControlState, caller, caller, #admin);
       };
       case (?existingProfile) {
         // Existing profile: preserve balance and other sensitive fields
-        if (not AccessControl.isAdmin(accessControlState, caller)) {
-          validateUniqueUsername(profile.username);
-        };
-        
+        validateUniqueUsername(profile.username);
+
         userProfiles.add(
           caller,
           {
@@ -293,9 +294,6 @@ actor {
   };
 
   public query ({ caller }) func getInventory(user : Principal) : async Inventory {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own inventory");
-    };
     switch (userInventories.get(user)) {
       case (null) { { cars = [] } };
       case (?inventory) { inventory };
@@ -316,8 +314,8 @@ actor {
   };
 
   public shared ({ caller }) func initializeSystem() : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
-      Runtime.trap("Unauthorized: Only admins can initialize system");
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can initialize system");
     };
     if (systemInitialized) {
       Runtime.trap("System already initialized");
@@ -327,7 +325,7 @@ actor {
   };
 
   public query ({ caller }) func getCarCatalog() : async [Car] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view car catalog");
     };
     initializeCarCatalog();
@@ -335,7 +333,7 @@ actor {
   };
 
   public shared ({ caller }) func buyCar(carId : Nat) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can buy cars");
     };
     initializeCarCatalog();
@@ -362,6 +360,25 @@ actor {
         userInventories.add(caller, { currentInventory with cars = newCars });
 
         updateUserBalance(caller, updatedBalance);
+      };
+    };
+  };
+
+  public shared ({ caller }) func grantCoins(targetUser : Principal, amount : Nat) : async GrantCoinsResult {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can grant coins");
+    };
+    switch (userProfiles.get(targetUser)) {
+      case (null) {
+        #error("User does not exist");
+      };
+      case (?profile) {
+        let newBalance = profile.balance + amount;
+        updateUserBalance(targetUser, newBalance);
+        #success({
+          finalBalance = newBalance;
+          grantedAmount = amount;
+        });
       };
     };
   };

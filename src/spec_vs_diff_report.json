@@ -1,90 +1,65 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-09T22:17:24.767Z",
-  "summary": "REQ-1 is only partially addressed: a new DEFAULT_BALANCE constant and a migration that sets balance when it is 0 were added, but the diff does not show profile-creation logic being updated to set the starting balance only for newly created profiles. REQ-3 has new components/props to support a model+color track marker, but the diff summary does not show RacePage actually wiring the active car’s model/color into TrackVisualization. REQ-2 appears to be in progress (Shop groups cars by model and imports the 3D viewer), but the truncated diff does not provide enough evidence that full-design visual previews are rendered and update with color selection. Several unrelated/admin/system features appear to have been added beyond the request.",
+  "generatedAt": "2026-02-10T02:18:21.875Z",
+  "summary": "Frontend changes implement joined-player access to /admin routes via profile-based gating and wire an Admin \"Grant TRP Coins\" UI to a new React Query mutation that calls `actor.grantCoins(...)` and shows success/error toasts. Backend diffs are truncated; the summary shows new types for grant results but does not provide evidence of updated authorization behavior or an implemented `grantCoins` backend method that updates balances and errors when the user is missing.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Set the default starting user balance to 1000000000000000 (Nat) for newly created user profiles (and do not modify existing users’ balances).",
-      "reason": "The migration sets DEFAULT_BALANCE when an existing stored profile has balance == 0, which can modify existing users (contrary to AC). Also, the diff does not show the user-profile creation/save path setting balance to DEFAULT_BALANCE for brand-new profiles.",
+      "requirement": "Change authorization so every joined player (saved profile / #user) is treated as admin for permission checks and `isCallerAdmin()` / `getCallerUserRole()` responses; unauthenticated callers remain non-admin.",
+      "reason": "The backend diff is truncated and does not show any concrete changes to permission checks, `isCallerAdmin()`, `getCallerUserRole()`, or admin-only entrypoint guards. Only the actor imports/types are visible.",
       "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-1",
-      "requirement": "Shop balance display reflects the new starting balance for new users after profile creation (no manual refresh required beyond existing React Query invalidation/loads).",
-      "reason": "No evidence in the provided diffs/truncation that profile creation triggers the expected query invalidation/update to reflect the new starting balance immediately in the Shop UI.",
-      "evidence": [
-        "frontend/src/pages/ShopPage.tsx",
-        "frontend/src/hooks/useQueries.ts (mentioned in frontend-file-summaries.txt, but actual diff not shown)"
+        "backend/main.mo (truncated)"
       ]
     },
     {
       "id": "REQ-2",
-      "requirement": "Shop page supports browsing/selecting full car designs with a clear visual preview that updates when the user changes the selected variant (color).",
-      "reason": "ShopPage now groups cars by model and imports CarViewer3D, but the diff is truncated before showing any rendered preview per model and before showing that the preview is actually driven by the selected color variant.",
+      "requirement": "Implement backend method to grant unlimited TRP coins to a specified principal, increasing `UserProfile.balance`, and returning success or explicit error if user does not exist.",
+      "reason": "Frontend calls `actor.grantCoins(targetPrincipal, amount)`, and backend defines `GrantCoinsResult`, but the diff summary does not show any `public` backend function implementation that updates the target profile’s balance or returns an error when missing.",
       "evidence": [
-        "frontend/src/pages/ShopPage.tsx"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "requirement": "On the Race page, the moving player marker in the track visualization reflects the active car’s design (model) and color; fallback to Default Racer blue if none selected.",
-      "reason": "TrackVisualization supports playerCarModel/playerCarColor and renders TrackCarMarker accordingly, but the RacePage diff is truncated and does not show TrackVisualization being invoked with the active car’s model/color derived from the active car catalog entry (or fallback logic when no active car is selected).",
-      "evidence": [
-        "frontend/src/components/race/TrackVisualization.tsx",
-        "frontend/src/pages/RacePage.tsx"
+        "backend/main.mo (truncated)",
+        "frontend/src/hooks/useEconomy.ts"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added a new /system route and “System” navigation link/UI.",
-      "reason": "Not requested by REQ-1/2/3; appears as additional functionality unrelated to starting balance, Shop car design previews, or race track marker visualization.",
+      "description": "Added/mentioned a new `/system` route and corresponding System page navigation/link.",
+      "reason": "Not requested in the BuildRequest (scope is admin access + TRP coin grant tooling).",
       "evidence": [
-        "frontend/src/App.tsx (mentioned in frontend-file-summaries.txt)",
-        "frontend/src/components/layout/AppLayout.tsx (mentioned in frontend-file-summaries.txt)"
+        "frontend-file-summaries.txt (App.tsx mentions new /system route)",
+        "frontend-file-summaries.txt (AppLayout.tsx mentions System link)"
       ]
     },
     {
-      "description": "Admin/authorization UI and command parsing features (AdminGuard, audit log, admin command parser, admin hooks).",
-      "reason": "Not requested; no admin feature work is part of the BuildRequest and it risks scope creep.",
+      "description": "Rule-based natural language admin command parser supporting multiple admin commands (titles, MOTD, text addition, TRP coin grants).",
+      "reason": "Not requested; BuildRequest explicitly limits scope to access + coin grant UI and says not to implement other placeholder admin pages/features.",
       "evidence": [
-        "frontend/src/components/admin/AdminGuard.tsx (mentioned in frontend-file-summaries.txt)",
-        "frontend/src/components/admin/AdminAuditLog.tsx (mentioned in frontend-file-summaries.txt)",
-        "frontend/src/lib/adminCommandParser.ts (mentioned in frontend-file-summaries.txt)",
-        "frontend/src/hooks/useAdmin.ts (mentioned in frontend-file-summaries.txt)"
+        "frontend-file-summaries.txt (frontend/src/lib/adminCommandParser.ts)"
       ]
     },
     {
-      "description": "Introduced placeholder/stub hooks for MOTD, teams, and leaderboards returning empty data.",
-      "reason": "Not requested by REQ-1/2/3 and explicitly outside scope of the stated non-goals (adds new feature areas).",
+      "description": "Admin audit log UI component for displaying executed admin commands.",
+      "reason": "Not requested by BuildRequest.",
       "evidence": [
-        "frontend/src/hooks/useMotd.ts (mentioned in frontend-file-summaries.txt)",
-        "frontend/src/hooks/useTeams.ts (mentioned in frontend-file-summaries.txt)",
-        "frontend/src/hooks/useLeaderboards.ts (mentioned in frontend-file-summaries.txt)"
+        "frontend-file-summaries.txt (frontend/src/components/admin/AdminAuditLog.tsx)"
       ]
     },
     {
-      "description": "Race history page changed to a 'coming soon' message due to missing backend support.",
-      "reason": "Not requested; BuildRequest is about on-track visualization and shop/balance changes, not removing/altering race history behavior.",
+      "description": "Multiple additional frontend feature stubs/changes (teams hooks, leaderboards hooks, MOTD hook, race UI/metrics updates, customization page behavior).",
+      "reason": "Not requested by BuildRequest; these go beyond admin access and coin grant enablement.",
       "evidence": [
-        "frontend/src/pages/RaceHistoryPage.tsx (mentioned in frontend-file-summaries.txt)"
+        "frontend-file-summaries.txt (useMotd.ts, useTeams.ts, useLeaderboards.ts, Race* pages, CustomizePage.tsx, raceMetrics.ts, etc.)"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.64,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/race/TrackCarMarker.tsx",
-    "frontend/src/components/race/TrackVisualization.tsx",
-    "frontend/src/pages/RacePage.tsx",
-    "frontend/src/pages/ShopPage.tsx",
+    "frontend/src/components/admin/AdminGuard.tsx",
+    "frontend/src/hooks/useEconomy.ts",
+    "frontend/src/pages/admin/AdminEconomyToolsPage.tsx",
     "project_state.json"
   ]
 }

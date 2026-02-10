@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Give new users a much larger starting balance, and ensure car design selection and visualization use full car models (design + color) in both the Shop and the race track view.
+**Goal:** Treat every joined (profile-saved) player as an admin and enable unlimited TRP coin grant tools in the Admin section.
 
 **Planned changes:**
-- Backend: Set the default balance for newly created user profiles to `1000000000000000` (Nat) when a profile is first saved/created, without changing existing users’ balances.
-- Frontend (Shop): Update the Shop UI to browse/select full car designs (model/body style) with a visual preview, while still allowing purchase of a specific variant (design + color) and preserving owned-variant behavior.
-- Frontend (Race): Update the on-track player car marker to reflect the currently active car’s design and color, with a fallback to the existing default car (“Default Racer”, blue) when no active car is selected.
+- Update backend authorization so any authenticated user with a saved profile is considered admin for permission checks and `isCallerAdmin()` / `getCallerUserRole()`.
+- Add/enable a backend method for admins to grant an arbitrary amount of TRP coins to a specified user principal, updating `UserProfile.balance` and returning success or an explicit user-not-found error.
+- Adjust frontend admin route gating so any joined player can access `/admin/*` routes, while logged-out users still see an access-denied/login prompt.
+- Enable and wire the Admin “Grant TRP Coins” UI to the backend grant method, showing success/error toasts and refetching relevant profile data after success.
 
-**User-visible outcome:** New users start with `1000000000000000` balance, players can view and choose full car designs (not only colors) in the Shop with a clear preview, and the race track visualization shows the player’s active car design and color during gameplay.
+**User-visible outcome:** Any logged-in player who has joined the game can open the Admin section (including Grant TRP Coins) and grant any amount of TRP coins to a specified user; logged-out users still cannot access admin pages.

@@ -1,52 +1,43 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Shop: full car design previews + Race track marker matches active car",
+  "title": "Joined-player admin access and TRP coin grant UI wiring",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Enhance Shop browsing to present each car design/model with a live visual preview and allow purchasing a specific design+color variant while preserving owned-state behavior.",
+      "id": "REQ-3",
+      "summary": "Allow any authenticated user with a saved profile to access all /admin/* routes without admin denial.",
       "acceptanceCriteria": [
-        "Each car model/design in the shop has a clear visual preview of the design (e.g., using the existing 3D car viewer component) that updates when the user changes the selected variant (color) for that design.",
-        "Users can still purchase a specific variant (design + color) as they do today.",
-        "Owned variants remain clearly indicated and cannot be re-purchased (current behavior preserved)."
+        "A logged-in user with a saved profile can navigate to `/admin` and see `AdminHomePage` without being blocked by `AdminGuard`.",
+        "A logged-out user navigating to `/admin` still sees an access denied message prompting login.",
+        "Admin routes under `/admin/*` are consistently accessible to joined players (no inconsistent gating between pages)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/ShopPage.tsx",
+          "path": "frontend/src/components/admin/AdminGuard.tsx",
           "operation": "modify",
-          "description": "Add a per-model visual preview panel using the existing CarViewer3D component so each model card shows the full design and updates as the selected color changes; initialize a sensible default selected color per model on catalog load so previews render without extra clicks; keep variant purchase flow intact (design+color mapped to the existing catalog variant id). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/ShopPage.tsx",
-          "operation": "modify",
-          "description": "Preserve owned-state rules while improving UX: allow selecting owned variants for preview (do not disable color selection), keep owned variants clearly indicated, and ensure the purchase button remains disabled (and labeled appropriately) when the currently selected variant is owned."
+          "description": "Update admin gating to treat a user as allowed if they are authenticated AND have a non-null caller user profile (joined player), while keeping logged-out users blocked. Use existing profile query logic consistent with the authorization component’s frontend guidance; verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-3",
-      "summary": "Update the Race page track visualization to render the moving player marker using the active car’s design and color (with a consistent fallback when no active car is selected).",
+      "id": "REQ-4",
+      "summary": "Enable and wire the Admin \"Grant TRP Coins\" UI to the backend grantCoins call with success/error toasts and query invalidation.",
       "acceptanceCriteria": [
-        "On the Race page, the moving player marker in the track visualization reflects the active car’s color and design (derived from the active car’s catalog entry).",
-        "If no active car is selected, the track visualization uses the existing fallback car (\"Default Racer\", blue) consistently with the existing 3D viewer fallback.",
-        "No Internet Identity login state regressions: the Race page still works in practice/demo and logged-out scenarios as it does now."
+        "On `AdminEconomyToolsPage`, the principal input, amount input, and grant button are enabled for joined players.",
+        "Submitting a valid principal and amount calls the React Query mutation and triggers a backend request.",
+        "On success, a toast indicates the TRP coin grant succeeded and relevant profile queries are invalidated/refetched.",
+        "On failure, a toast displays a helpful error message (e.g., user not found)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/race/TrackCarMarker.tsx",
-          "operation": "create",
-          "description": "Create a lightweight track marker component that can visually differentiate car designs (based on modelName) and apply the selected CarColor, suitable for use inside TrackVisualization (non-Canvas, small UI element)."
+          "path": "frontend/src/hooks/useEconomy.ts",
+          "operation": "modify",
+          "description": "Implement `useAdminGrantTrpCoins` mutation to call the backend `grantCoins` function (parsing the target principal from text), convert backend success/error result into resolved/throwing behavior, and invalidate/refetch relevant profile queries on success. Align error handling with the authorization component’s guidance for trapped/returned errors; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/race/TrackVisualization.tsx",
+          "path": "frontend/src/pages/admin/AdminEconomyToolsPage.tsx",
           "operation": "modify",
-          "description": "Extend TrackVisualization props to accept the player's active car modelName and CarColor; render the player's moving marker using the new TrackCarMarker (design+color) instead of the generic lucide Car icon; keep ghost lanes unchanged or continue using the generic icon for opponents."
-        },
-        {
-          "path": "frontend/src/pages/RacePage.tsx",
-          "operation": "modify",
-          "description": "Wire the active car information already resolved in RacePage (active car from catalog with fallback to \"Default Racer\" + blue) into TrackVisualization so the track marker matches the same car shown in CarViewer3D; ensure behavior remains unchanged for practice/demo mode and logged-out sessions."
+          "description": "Remove the temporary disabled state and 'Coming Soon/unavailable' messaging for the TRP coin grant section; enable inputs/button for joined players and keep existing validation. On mutation success show a confirmation toast; on mutation failure display the backend-provided error message via toast (or a fallback). Verify the component's usage instructions before implementing."
         }
       ]
     }

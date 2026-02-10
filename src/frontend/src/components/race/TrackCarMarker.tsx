@@ -1,4 +1,5 @@
 import { CarColor } from '../../backend';
+import { getCarModelProfile } from './carModelProfiles';
 
 interface TrackCarMarkerProps {
   modelName: string;
@@ -16,12 +17,12 @@ const COLOR_MAP: Record<CarColor, string> = {
 
 export default function TrackCarMarker({ modelName, color, className = '' }: TrackCarMarkerProps) {
   const hexColor = COLOR_MAP[color] || COLOR_MAP[CarColor.blue];
-  const isBugatti = modelName.includes('Bugatti');
-  const isUrus = modelName.includes('Urus');
+  const profile = getCarModelProfile(modelName);
   
-  // Determine car shape based on model
-  const carWidth = isUrus ? '20px' : '16px';
-  const carHeight = isUrus ? '32px' : '28px';
+  const carWidth = `${profile.markerWidth}px`;
+  const carHeight = `${profile.markerLength}px`;
+  const cabinWidth = `${profile.markerWidth * profile.markerCabinRatio}px`;
+  const noseHeight = `${profile.markerNoseLength}px`;
   
   return (
     <div className={`relative ${className}`} style={{ width: carWidth, height: carHeight }}>
@@ -30,26 +31,86 @@ export default function TrackCarMarker({ modelName, color, className = '' }: Tra
         className="absolute inset-0 rounded-sm shadow-lg"
         style={{
           backgroundColor: hexColor,
-          border: color === CarColor.white ? '1px solid #d1d5db' : 'none',
+          border: color === CarColor.white ? '2px solid #d1d5db' : 'none',
         }}
       />
       
-      {/* Windshield */}
+      {/* Cabin/cockpit (narrower section) */}
       <div
-        className="absolute top-[20%] left-[15%] right-[15%] h-[25%] bg-black/30 rounded-t-sm"
+        className="absolute left-1/2 transform -translate-x-1/2 bg-black/20 rounded-sm"
+        style={{
+          top: '25%',
+          width: cabinWidth,
+          height: '35%',
+        }}
+      />
+      
+      {/* Front nose extension */}
+      <div
+        className="absolute left-1/2 transform -translate-x-1/2 rounded-t-sm"
+        style={{
+          top: 0,
+          width: `${profile.markerWidth * 0.7}px`,
+          height: noseHeight,
+          backgroundColor: hexColor,
+          border: color === CarColor.white ? '2px solid #d1d5db' : 'none',
+          borderBottom: 'none',
+        }}
       />
       
       {/* Headlights */}
-      <div className="absolute top-[5%] left-[15%] w-[25%] h-[8%] bg-yellow-200 rounded-full" />
-      <div className="absolute top-[5%] right-[15%] w-[25%] h-[8%] bg-yellow-200 rounded-full" />
+      <div 
+        className="absolute bg-yellow-200 rounded-full" 
+        style={{ 
+          top: '3%', 
+          left: '20%', 
+          width: `${profile.markerWidth * 0.2}px`, 
+          height: `${profile.markerWidth * 0.15}px` 
+        }} 
+      />
+      <div 
+        className="absolute bg-yellow-200 rounded-full" 
+        style={{ 
+          top: '3%', 
+          right: '20%', 
+          width: `${profile.markerWidth * 0.2}px`, 
+          height: `${profile.markerWidth * 0.15}px` 
+        }} 
+      />
       
-      {/* Spoiler for sports cars */}
-      {!isUrus && (
+      {/* Rear spoiler (for sports cars) */}
+      {profile.markerHasSpoiler && (
         <div
-          className="absolute bottom-[5%] left-[10%] right-[10%] h-[6%] rounded-sm"
-          style={{ backgroundColor: hexColor }}
+          className="absolute left-1/2 transform -translate-x-1/2 rounded-sm"
+          style={{
+            bottom: '3%',
+            width: `${profile.markerWidth * 0.75}px`,
+            height: `${profile.markerWidth * 0.25}px`,
+            backgroundColor: hexColor,
+            border: color === CarColor.white ? '1px solid #d1d5db' : 'none',
+          }}
         />
       )}
+      
+      {/* Side mirrors/intakes indicators */}
+      <div 
+        className="absolute bg-black/40 rounded-full" 
+        style={{ 
+          top: '30%', 
+          left: '-2px', 
+          width: '4px', 
+          height: `${profile.markerWidth * 0.3}px` 
+        }} 
+      />
+      <div 
+        className="absolute bg-black/40 rounded-full" 
+        style={{ 
+          top: '30%', 
+          right: '-2px', 
+          width: '4px', 
+          height: `${profile.markerWidth * 0.3}px` 
+        }} 
+      />
     </div>
   );
 }

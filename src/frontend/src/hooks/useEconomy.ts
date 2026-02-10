@@ -9,10 +9,27 @@ export function useAdminGrantTrpCoins() {
   return useMutation({
     mutationFn: async ({ amount, user }: { amount: bigint; user: string }) => {
       if (!actor) throw new Error('Actor not available');
-      // Feature temporarily disabled - backend support pending
-      throw new Error('TRP Coins grant feature is not yet available');
+      
+      // Parse the principal from the user string
+      let targetPrincipal: Principal;
+      try {
+        targetPrincipal = Principal.fromText(user);
+      } catch (error) {
+        throw new Error('Invalid principal ID format');
+      }
+
+      // Call the backend grantCoins function
+      const result = await actor.grantCoins(targetPrincipal, amount);
+
+      // Handle the result variant
+      if (result.__kind__ === 'error') {
+        throw new Error(result.error);
+      }
+
+      return result.success;
     },
     onSuccess: () => {
+      // Invalidate relevant profile queries to refresh balances
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
     },

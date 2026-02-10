@@ -29,16 +29,15 @@ export default function TrackVisualization({
 
       {/* Player Lane */}
       <div className="relative">
-        <div className="h-12 bg-background border-2 border-primary/30 rounded-lg relative overflow-hidden">
+        <div className="h-16 bg-background border-2 border-primary/30 rounded-lg relative overflow-hidden">
           <div className="absolute inset-0 flex items-center px-2">
             <div
               className="transition-all duration-300 ease-out flex items-center justify-center"
-              style={{ marginLeft: `${Math.min(playerProgress, 100)}%` }}
+              style={{ marginLeft: `calc(${Math.min(playerProgress, 100)}% - 10px)` }}
             >
               <TrackCarMarker 
                 modelName={playerCarModel} 
                 color={playerCarColor}
-                className="transform -translate-x-1/2"
               />
             </div>
           </div>
@@ -51,16 +50,16 @@ export default function TrackVisualization({
       {/* Ghost Opponent Lanes */}
       {mode === 'ghost' && opponentProgress.map((progress, index) => (
         <div key={index} className="relative">
-          <div className="h-12 bg-background border-2 border-muted rounded-lg relative overflow-hidden">
+          <div className="h-16 bg-background border-2 border-muted rounded-lg relative overflow-hidden">
             <div className="absolute inset-0 flex items-center px-2">
               <div
                 className="transition-all duration-300 ease-out flex items-center justify-center"
-                style={{ marginLeft: `${Math.min(progress, 100)}%` }}
+                style={{ marginLeft: `calc(${Math.min(progress, 100)}% - 10px)` }}
               >
                 <TrackCarMarker 
                   modelName="Default Racer" 
                   color={CarColor.blue}
-                  className="transform -translate-x-1/2 opacity-50"
+                  className="opacity-50"
                 />
               </div>
             </div>

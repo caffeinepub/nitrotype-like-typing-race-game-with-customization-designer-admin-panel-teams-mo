@@ -21,6 +21,8 @@ export type CarColor = { 'red' : null } |
   { 'black' : null } |
   { 'white' : null } |
   { 'yellow' : null };
+export type GrantCoinsResult = { 'error' : string } |
+  { 'success' : { 'grantedAmount' : bigint, 'finalBalance' : bigint } };
 export interface Inventory { 'cars' : Array<bigint> }
 export type Time = bigint;
 export interface UserProfile {
@@ -46,6 +48,7 @@ export interface _SERVICE {
   'getCarCatalog' : ActorMethod<[], Array<Car>>,
   'getInventory' : ActorMethod<[Principal], Inventory>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'grantCoins' : ActorMethod<[Principal, bigint], GrantCoinsResult>,
   'initializeSystem' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,

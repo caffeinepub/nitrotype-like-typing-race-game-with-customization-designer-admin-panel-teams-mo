@@ -1,24 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Car game app with 3D cars; Version 7 deployed to production.",
+  "summary": "New project",
   "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-update-the-shop-page-to-support-browsing-and-selecting-full-car-designs-model-body-style-with-a-visual-preview-not-just-selecting-colors",
-      "title": "Update the Shop page to support browsing and selecting full car designs (model/body style) with a visual preview, not just selecting colors.",
+      "id": "feature-enable-the-in-game-admin-section-for-all-joined-players-by-adjusting-the-admin-gating-so-that-any-authenticated-user-who-has-joined-the-game-can-access-all-admin-routes-without-seeing-an-access-denied-screen",
+      "title": "Enable the in-game Admin section for all joined players by adjusting the admin gating so that any authenticated user who has joined the game can access all `/admin/*` routes without seeing an access-denied screen.",
       "reqIds": [
-        "REQ-2"
+        "REQ-3"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-on-track-visualization-during-gameplay-so-the-player-s-displayed-car-matches-the-currently-selected-active-car-design-model-name-and-color-instead-of-a-generic-car-icon",
-      "title": "Update the on-track visualization during gameplay so the player’s displayed car matches the currently selected/active car design (model name) and color, instead of a generic car icon.",
+      "id": "feature-enable-the-admin-grant-trp-coins-ui-so-that-it-is-usable-inputs-and-button-enabled-and-wired-to-the-backend-trp-coin-grant-method-on-success-it-shows-a-confirmation-toast-and-on-error-it-shows-the-backend-error-message",
+      "title": "Enable the Admin \"Grant TRP Coins\" UI so that it is usable (inputs and button enabled) and wired to the backend TRP coin grant method; on success it shows a confirmation toast, and on error it shows the backend error message.",
       "reqIds": [
-        "REQ-3"
+        "REQ-4"
       ],
       "version": 1
     }
@@ -26,33 +26,28 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Set default starting player money to 1000000000000000.",
+      "summary": "Add an in-game 'Admin' section and grant all joined players admin privileges, including ability to add unlimited TRP coins and perform any admin actions",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Update shop to support selecting/browsing full car designs (not just colors).",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Ensure the selected car design is displayed on the track during gameplay.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Set the default starting user balance to 1000000000000000 (Nat) for newly created user profiles.",
+      "summary": "Change authorization so that every player who has joined the game (i.e., has a saved user profile / has #user permission) is treated as an admin for permission checks and for `isCallerAdmin()` / `getCallerUserRole()` responses.",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Implement backend functionality to allow admins to grant an arbitrary (unlimited) amount of TRP coins to any specified user principal, updating that user's `UserProfile.balance` accordingly and returning a success result or an explicit error if the user does not exist.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
     }
   ],
-  "gameProjectType": "3d",
-  "projectName": "Increase starting balance and show full car designs in Shop and on-track visualization",
+  "projectName": "Grant admin access to all joined players and enable unlimited TRP coin admin tools",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

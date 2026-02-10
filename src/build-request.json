@@ -1,73 +1,91 @@
 {
   "kind": "build_request",
-  "title": "Increase starting balance and show full car designs in Shop and on-track visualization",
+  "title": "Grant admin access to all joined players and enable unlimited TRP coin admin tools",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Set the default starting user balance to 1000000000000000 (Nat) for newly created user profiles.",
+      "text": "Change authorization so that every player who has joined the game (i.e., has a saved user profile / has #user permission) is treated as an admin for permission checks and for `isCallerAdmin()` / `getCallerUserRole()` responses.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-user-1"
         ],
         "quotes": [
-          "make the people start with 1000000000000000 money"
+          "everyone who has joined the game give them admin"
         ]
       },
       "acceptanceCriteria": [
-        "When a brand-new user creates/saves their profile for the first time, their stored UserProfile.balance is 1000000000000000.",
-        "Existing users’ balances are not modified by this change.",
-        "The Shop balance display reflects the new starting balance for new users after profile creation (no manual refresh required beyond existing React Query invalidation/loads)."
+        "When an authenticated principal has created/saved a profile, `actor.isCallerAdmin()` returns `true` for that principal.",
+        "Admin-only backend entrypoints protected by `#admin` permission (e.g., system initialization) can be called successfully by any joined player.",
+        "Unauthenticated callers (no identity) are still not treated as admin and cannot access admin-only backend entrypoints."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update the Shop page to support browsing and selecting full car designs (model/body style) with a visual preview, not just selecting colors.",
-      "target": "frontend",
+      "text": "Implement backend functionality to allow admins to grant an arbitrary (unlimited) amount of TRP coins to any specified user principal, updating that user's `UserProfile.balance` accordingly and returning a success result or an explicit error if the user does not exist.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-user-1"
         ],
         "quotes": [
-          "make the car designs in the shop not only the colors"
+          "give them admin which makes them add as much trp coins as they want"
         ]
       },
       "acceptanceCriteria": [
-        "Each car model/design in the shop has a clear visual preview of the design (e.g., using the existing 3D car viewer component) that updates when the user changes the selected variant (color) for that design.",
-        "Users can still purchase a specific variant (design + color) as they do today.",
-        "Owned variants remain clearly indicated and cannot be re-purchased (current behavior preserved)."
+        "A new or existing backend method exists for granting TRP coins that accepts (target user principal, amount) and increases the target user’s balance by the given amount.",
+        "The grant method traps/returns an error if the target user profile does not exist.",
+        "There is no artificial maximum imposed on the grant amount beyond Motoko/Nat limits."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Update the on-track visualization during gameplay so the player’s displayed car matches the currently selected/active car design (model name) and color, instead of a generic car icon.",
+      "text": "Enable the in-game Admin section for all joined players by adjusting the admin gating so that any authenticated user who has joined the game can access all `/admin/*` routes without seeing an access-denied screen.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-user-1"
         ],
         "quotes": [
-          "and on thhe track the car is being displayed"
+          "do anything they want through a section in the game that says admin"
         ]
       },
       "acceptanceCriteria": [
-        "On the Race page, the moving player marker in the track visualization reflects the active car’s color and design (derived from the active car’s catalog entry).",
-        "If no active car is selected, the track visualization uses the existing fallback car (\"Default Racer\", blue) consistently with the existing 3D viewer fallback.",
-        "No Internet Identity login state regressions: the Race page still works in practice/demo and logged-out scenarios as it does now."
+        "A logged-in user with a saved profile can navigate to `/admin` and see `AdminHomePage` without being blocked by `AdminGuard`.",
+        "A logged-out user navigating to `/admin` still sees an access denied message prompting login.",
+        "Admin routes under `/admin/*` are consistently accessible to joined players (no inconsistent gating between pages)."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Enable the Admin \"Grant TRP Coins\" UI so that it is usable (inputs and button enabled) and wired to the backend TRP coin grant method; on success it shows a confirmation toast, and on error it shows the backend error message.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-1"
+        ],
+        "quotes": [
+          "add as much trp coins as they want"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On `AdminEconomyToolsPage`, the principal input, amount input, and grant button are enabled for joined players.",
+        "Submitting a valid principal and amount calls the React Query mutation and triggers a backend request.",
+        "On success, a toast indicates the TRP coin grant succeeded and relevant profile queries are invalidated/refetched.",
+        "On failure, a toast displays a helpful error message (e.g., user not found)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo (no additional canisters/services).",
-    "Do not edit files under frontend/src/components/ui or any paths listed as immutable in SYSTEM_CONTEXT (compose them instead).",
+    "Backend must remain a single Motoko actor in `backend/main.mo` (no additional backend services).",
+    "Do not edit files under `frontend/src/components/ui` or other paths listed as immutable in SYSTEM_CONTEXT.",
     "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Adding new backend databases or external storage.",
-    "Introducing new authentication methods beyond Internet Identity.",
-    "Implementing real-time multiplayer/ghost racing backends or WebSocket features.",
-    "Creating entirely new car asset pipelines/models beyond using the existing in-app 3D car rendering approach."
+    "Adding third-party authentication providers (only Internet Identity is supported).",
+    "Adding real-time multiplayer or WebSocket-based admin control.",
+    "Implementing currently placeholder admin pages (cars/templates/banners/trails/etc.) beyond ensuring access is granted as requested."
   ],
   "imageRequirements": {
     "required": [],

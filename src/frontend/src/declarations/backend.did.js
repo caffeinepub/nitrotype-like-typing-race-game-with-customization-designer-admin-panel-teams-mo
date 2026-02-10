@@ -39,6 +39,13 @@ export const Car = IDL.Record({
   'price' : IDL.Nat,
 });
 export const Inventory = IDL.Record({ 'cars' : IDL.Vec(IDL.Nat) });
+export const GrantCoinsResult = IDL.Variant({
+  'error' : IDL.Text,
+  'success' : IDL.Record({
+    'grantedAmount' : IDL.Nat,
+    'finalBalance' : IDL.Nat,
+  }),
+});
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -53,6 +60,7 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'grantCoins' : IDL.Func([IDL.Principal, IDL.Nat], [GrantCoinsResult], []),
   'initializeSystem' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
@@ -92,6 +100,13 @@ export const idlFactory = ({ IDL }) => {
     'price' : IDL.Nat,
   });
   const Inventory = IDL.Record({ 'cars' : IDL.Vec(IDL.Nat) });
+  const GrantCoinsResult = IDL.Variant({
+    'error' : IDL.Text,
+    'success' : IDL.Record({
+      'grantedAmount' : IDL.Nat,
+      'finalBalance' : IDL.Nat,
+    }),
+  });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -106,6 +121,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'grantCoins' : IDL.Func([IDL.Principal, IDL.Nat], [GrantCoinsResult], []),
     'initializeSystem' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),

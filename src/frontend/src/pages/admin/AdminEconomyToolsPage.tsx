@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Coins, AlertCircle, Info } from 'lucide-react';
+import { Coins, AlertCircle } from 'lucide-react';
 import { useAdminGrantTrpCoins } from '../../hooks/useEconomy';
 import { toast } from 'sonner';
 
@@ -25,13 +25,12 @@ export default function AdminEconomyToolsPage() {
     }
 
     try {
-      await grantCoins.mutateAsync({
+      const result = await grantCoins.mutateAsync({
         amount: BigInt(amount),
         user: principal,
       });
       
-      // If we reach here, the feature is available
-      toast.success(`Successfully granted ${amount} TRP Coins!`);
+      toast.success(`Successfully granted ${amount} TRP Coins! New balance: ${result.finalBalance.toString()}`);
       setPrincipal('');
       setAmount('');
     } catch (error: any) {
@@ -49,13 +48,6 @@ export default function AdminEconomyToolsPage() {
           <p className="text-muted-foreground">Manage TRP Coins and economy settings</p>
         </div>
       </div>
-
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertDescription>
-          TRP Coins grant feature is currently unavailable. Backend support is being added.
-        </AlertDescription>
-      </Alert>
 
       <Card>
         <CardHeader>
@@ -77,7 +69,6 @@ export default function AdminEconomyToolsPage() {
                 placeholder="Enter principal ID (e.g., xxxxx-xxxxx-xxxxx-xxxxx-xxx)"
                 value={principal}
                 onChange={(e) => setPrincipal(e.target.value)}
-                disabled
               />
               <p className="text-xs text-muted-foreground">
                 The unique identifier of the user to receive TRP Coins
@@ -93,7 +84,6 @@ export default function AdminEconomyToolsPage() {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 min="1"
-                disabled
               />
               <p className="text-xs text-muted-foreground">
                 The number of TRP Coins to grant (supports large values)
@@ -102,10 +92,10 @@ export default function AdminEconomyToolsPage() {
 
             <Button
               onClick={handleGrant}
-              disabled
+              disabled={grantCoins.isPending}
               className="w-full"
             >
-              Grant TRP Coins (Coming Soon)
+              {grantCoins.isPending ? 'Granting...' : 'Grant TRP Coins'}
             </Button>
           </div>
         </CardContent>
