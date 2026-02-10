@@ -294,6 +294,15 @@ actor {
   };
 
   public query ({ caller }) func getInventory(user : Principal) : async Inventory {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view inventories");
+    };
+    
+    // Users can only view their own inventory unless they are admin
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own inventory");
+    };
+    
     switch (userInventories.get(user)) {
       case (null) { { cars = [] } };
       case (?inventory) { inventory };
@@ -314,8 +323,8 @@ actor {
   };
 
   public shared ({ caller }) func initializeSystem() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can initialize system");
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can initialize system");
     };
     if (systemInitialized) {
       Runtime.trap("System already initialized");

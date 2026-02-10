@@ -1,65 +1,92 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T02:18:21.875Z",
-  "summary": "Frontend changes implement joined-player access to /admin routes via profile-based gating and wire an Admin \"Grant TRP Coins\" UI to a new React Query mutation that calls `actor.grantCoins(...)` and shows success/error toasts. Backend diffs are truncated; the summary shows new types for grant results but does not provide evidence of updated authorization behavior or an implemented `grantCoins` backend method that updates balances and errors when the user is missing.",
+  "generatedAt": "2026-02-10T02:26:00.549Z",
+  "summary": "The diff does not show any build/deploy automation or release action for upgrading frontend assets and backend canisters. Instead, it adds a publish runbook and introduces multiple new frontend/backend product features and UI routes, which conflicts with the publish-only constraint.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Change authorization so every joined player (saved profile / #user) is treated as admin for permission checks and `isCallerAdmin()` / `getCallerUserRole()` responses; unauthenticated callers remain non-admin.",
-      "reason": "The backend diff is truncated and does not show any concrete changes to permission checks, `isCallerAdmin()`, `getCallerUserRole()`, or admin-only entrypoint guards. Only the actor imports/types are visible.",
+      "requirement": "Publish the game by building and deploying the latest version so the currently committed frontend and backend canisters are upgraded and the live URL serves the newest build.",
+      "reason": "No evidence in the diff summary of actual deployment configuration, CI/CD changes, canister deployment commands, versioning, or release artifacts that would perform a new deployment/upgrade. The added content is documentation and code changes, not a deployment action.",
       "evidence": [
-        "backend/main.mo (truncated)"
+        "frontend/PUBLISH_RUNBOOK.md",
+        "project_state.json"
       ]
     },
     {
-      "id": "REQ-2",
-      "requirement": "Implement backend method to grant unlimited TRP coins to a specified principal, increasing `UserProfile.balance`, and returning success or explicit error if user does not exist.",
-      "reason": "Frontend calls `actor.grantCoins(targetPrincipal, amount)`, and backend defines `GrantCoinsResult`, but the diff summary does not show any `public` backend function implementation that updates the target profile’s balance or returns an error when missing.",
+      "id": "REQ-1",
+      "requirement": "Basic smoke-check passes on the live deployment: user can load '/', navigate to '/race', and Internet Identity authentication works.",
+      "reason": "The diff includes documentation describing smoke-check steps, but no evidence of deployment execution, test automation, or changes specifically ensuring the live environment is updated and verified. The diff summary does not provide evidence that these checks were actually performed or wired into a publish pipeline.",
       "evidence": [
-        "backend/main.mo (truncated)",
-        "frontend/src/hooks/useEconomy.ts"
+        "frontend/PUBLISH_RUNBOOK.md"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added/mentioned a new `/system` route and corresponding System page navigation/link.",
-      "reason": "Not requested in the BuildRequest (scope is admin access + TRP coin grant tooling).",
+      "description": "Added cache-busting meta directives in frontend HTML (Cache-Control/Pragma/Expires).",
+      "reason": "BuildRequest asked to publish/verify without introducing product/UI changes. This is a runtime behavior change to the frontend document not explicitly requested.",
       "evidence": [
-        "frontend-file-summaries.txt (App.tsx mentions new /system route)",
-        "frontend-file-summaries.txt (AppLayout.tsx mentions System link)"
+        "frontend/index.html"
       ]
     },
     {
-      "description": "Rule-based natural language admin command parser supporting multiple admin commands (titles, MOTD, text addition, TRP coin grants).",
-      "reason": "Not requested; BuildRequest explicitly limits scope to access + coin grant UI and says not to implement other placeholder admin pages/features.",
+      "description": "New frontend route and navigation for a '/system' page (System link).",
+      "reason": "BuildRequest explicitly disallows new product features or UI changes as part of publish request.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/lib/adminCommandParser.ts)"
+        "frontend-file-summaries.txt (frontend/src/App.tsx, frontend/src/components/layout/AppLayout.tsx)"
       ]
     },
     {
-      "description": "Admin audit log UI component for displaying executed admin commands.",
-      "reason": "Not requested by BuildRequest.",
+      "description": "Admin/authorization UI and hooks (AdminGuard, AccessDeniedScreen, AdminAuditLog, useAdmin, admin role management in queries, admin command parser).",
+      "reason": "Non-goals include adding admin features; also violates no-new-features constraint for publish-only request.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/admin/AdminAuditLog.tsx)"
+        "frontend-file-summaries.txt (frontend/src/components/admin/*, frontend/src/hooks/useAdmin.ts, frontend/src/hooks/useQueries.ts, frontend/src/lib/adminCommandParser.ts)",
+        "backend/main.mo (authorization imports/mixins visible)"
       ]
     },
     {
-      "description": "Multiple additional frontend feature stubs/changes (teams hooks, leaderboards hooks, MOTD hook, race UI/metrics updates, customization page behavior).",
-      "reason": "Not requested by BuildRequest; these go beyond admin access and coin grant enablement.",
+      "description": "Message of the Day and teams/leaderboards hook stubs added.",
+      "reason": "These are new feature scaffolds not requested as part of publishing/deploying.",
       "evidence": [
-        "frontend-file-summaries.txt (useMotd.ts, useTeams.ts, useLeaderboards.ts, Race* pages, CustomizePage.tsx, raceMetrics.ts, etc.)"
+        "frontend-file-summaries.txt (frontend/src/hooks/useMotd.ts, frontend/src/hooks/useTeams.ts, frontend/src/hooks/useLeaderboards.ts)"
+      ]
+    },
+    {
+      "description": "Multiple UI/feature changes across gameplay/pages (dashboard stats/quick actions, race lobby modes including 'Custom Text', 3D car viewer/track visualization, race results changes, profile/customize/shop interactions).",
+      "reason": "BuildRequest forbids new gameplay mechanics, economy features, or design changes for publish-only task; these appear to be significant feature/UI additions per file summaries.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/pages/DashboardPage.tsx, RaceLobbyPage.tsx, RacePage.tsx, RaceResultsPage.tsx, ProfilePage.tsx, CustomizePage.tsx)"
+      ]
+    },
+    {
+      "description": "Backend data model and functionality changes (new types: teams, holidays, leaderboards, race performance; new maps/state variables; access control mixin).",
+      "reason": "Publish request should not add new backend product features; these are substantial domain additions beyond deployment.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "description": "Added a publish/deployment verification runbook file.",
+      "reason": "Documentation is not requested by REQ-1 (which is to perform deployment). While helpful, it is additional scope not required to satisfy the publish action itself.",
+      "evidence": [
+        "frontend/PUBLISH_RUNBOOK.md"
+      ]
+    },
+    {
+      "description": "Updated project_state.json tracking new feature requests unrelated to performing an actual deployment.",
+      "reason": "This does not contribute to building/deploying canisters; it is extra process/state tracking not requested by REQ-1.",
+      "evidence": [
+        "project_state.json"
       ]
     }
   ],
-  "confidence": 0.64,
+  "confidence": 0.78,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/admin/AdminGuard.tsx",
-    "frontend/src/hooks/useEconomy.ts",
-    "frontend/src/pages/admin/AdminEconomyToolsPage.tsx",
+    "frontend/PUBLISH_RUNBOOK.md",
+    "frontend/index.html",
     "project_state.json"
   ]
 }

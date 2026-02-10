@@ -1,43 +1,26 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Joined-player admin access and TRP coin grant UI wiring",
+  "title": "Publish build: cache-bust and deployment verification docs (frontend-only)",
   "requirements": [
     {
-      "id": "REQ-3",
-      "summary": "Allow any authenticated user with a saved profile to access all /admin/* routes without admin denial.",
+      "id": "REQ-1",
+      "summary": "Ensure the deployed frontend serves the latest build reliably (no stale cached bundle) and provide a publish/smoke-check runbook for the live URL verification flow.",
       "acceptanceCriteria": [
-        "A logged-in user with a saved profile can navigate to `/admin` and see `AdminHomePage` without being blocked by `AdminGuard`.",
-        "A logged-out user navigating to `/admin` still sees an access denied message prompting login.",
-        "Admin routes under `/admin/*` are consistently accessible to joined players (no inconsistent gating between pages)."
+        "A new deployment is performed for both frontend assets and the backend canister(s), upgrading to the latest source in the repository.",
+        "The live application loads without errors and reflects the latest deployed build (no stale cached bundle served).",
+        "Basic smoke-check passes on the live deployment: user can load the Dashboard route ('/'), navigate to Race Lobby ('/race'), and authentication via Internet Identity still works."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/admin/AdminGuard.tsx",
+          "path": "frontend/index.html",
           "operation": "modify",
-          "description": "Update admin gating to treat a user as allowed if they are authenticated AND have a non-null caller user profile (joined player), while keeping logged-out users blocked. Use existing profile query logic consistent with the authorization component’s frontend guidance; verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Enable and wire the Admin \"Grant TRP Coins\" UI to the backend grantCoins call with success/error toasts and query invalidation.",
-      "acceptanceCriteria": [
-        "On `AdminEconomyToolsPage`, the principal input, amount input, and grant button are enabled for joined players.",
-        "Submitting a valid principal and amount calls the React Query mutation and triggers a backend request.",
-        "On success, a toast indicates the TRP coin grant succeeded and relevant profile queries are invalidated/refetched.",
-        "On failure, a toast displays a helpful error message (e.g., user not found)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useEconomy.ts",
-          "operation": "modify",
-          "description": "Implement `useAdminGrantTrpCoins` mutation to call the backend `grantCoins` function (parsing the target principal from text), convert backend success/error result into resolved/throwing behavior, and invalidate/refetch relevant profile queries on success. Align error handling with the authorization component’s guidance for trapped/returned errors; verify the component's usage instructions before implementing."
+          "description": "Add standard cache-busting/no-cache meta directives (e.g., Cache-Control/Pragma/Expires) to reduce the risk of clients receiving a stale cached bundle after deployment; keep the document structure and app behavior unchanged."
         },
         {
-          "path": "frontend/src/pages/admin/AdminEconomyToolsPage.tsx",
-          "operation": "modify",
-          "description": "Remove the temporary disabled state and 'Coming Soon/unavailable' messaging for the TRP coin grant section; enable inputs/button for joined players and keep existing validation. On mutation success show a confirmation toast; on mutation failure display the backend-provided error message via toast (or a fallback). Verify the component's usage instructions before implementing."
+          "path": "frontend/PUBLISH_RUNBOOK.md",
+          "operation": "create",
+          "description": "Document the exact publish workflow and post-deploy smoke-check steps focused on: hard-refresh guidance to avoid stale caches, verifying '/' and '/race' routes load, and confirming Internet Identity login/logout works on the live URL; do not introduce new product features or UI changes."
         }
       ]
     }

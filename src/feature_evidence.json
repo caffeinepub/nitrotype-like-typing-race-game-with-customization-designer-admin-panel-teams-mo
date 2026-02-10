@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-enable-the-in-game-admin-section-for-all-joined-players-by-adjusting-the-admin-gating-so-that-any-authenticated-user-who-has-joined-the-game-can-access-all-admin-routes-without-seeing-an-access-denied-screen",
-      "featureTitle": "Enable the in-game Admin section for all joined players by adjusting the admin gating so that any authenticated user who has joined the game can access all `/admin/*` routes without seeing an access-denied screen.",
+      "featureId": "feature-publish-the-game-by-building-and-deploying-the-latest-version-so-the-currently-committed-frontend-and-backend-canisters-are-upgraded-and-the-live-url-serves-the-newest-build",
+      "featureTitle": "Publish the game by building and deploying the latest version so the currently committed frontend and backend canisters are upgraded and the live URL serves the newest build.",
       "files": [
-        "frontend/src/components/admin/AdminGuard.tsx"
+        "frontend/PUBLISH_RUNBOOK.md",
+        "frontend/index.html"
       ],
       "components": [
         "authorization@4.0.0",
@@ -16,27 +17,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-enable-the-admin-grant-trp-coins-ui-so-that-it-is-usable-inputs-and-button-enabled-and-wired-to-the-backend-trp-coin-grant-method-on-success-it-shows-a-confirmation-toast-and-on-error-it-shows-the-backend-error-message",
-      "featureTitle": "Enable the Admin \"Grant TRP Coins\" UI so that it is usable (inputs and button enabled) and wired to the backend TRP coin grant method; on success it shows a confirmation toast, and on error it shows the backend error message.",
-      "files": [
-        "frontend/src/hooks/useEconomy.ts",
-        "frontend/src/pages/admin/AdminEconomyToolsPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
+        "REQ-1"
       ],
       "confidence": "high"
     }

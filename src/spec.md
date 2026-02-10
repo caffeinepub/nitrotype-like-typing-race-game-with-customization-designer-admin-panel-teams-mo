@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Treat every joined (profile-saved) player as an admin and enable unlimited TRP coin grant tools in the Admin section.
+**Goal:** Publish the game by building and deploying the latest version so the live URL serves the newest frontend and upgraded backend canister(s).
 
 **Planned changes:**
-- Update backend authorization so any authenticated user with a saved profile is considered admin for permission checks and `isCallerAdmin()` / `getCallerUserRole()`.
-- Add/enable a backend method for admins to grant an arbitrary amount of TRP coins to a specified user principal, updating `UserProfile.balance` and returning success or an explicit user-not-found error.
-- Adjust frontend admin route gating so any joined player can access `/admin/*` routes, while logged-out users still see an access-denied/login prompt.
-- Enable and wire the Admin “Grant TRP Coins” UI to the backend grant method, showing success/error toasts and refetching relevant profile data after success.
+- Build and deploy the latest frontend assets and backend canister(s) from the current repository source.
+- Verify the live deployment is serving the newest build (no stale cached bundle).
+- Perform a basic live smoke-check: load Dashboard (`/`), navigate to Race Lobby (`/race`), and confirm Internet Identity authentication works.
 
-**User-visible outcome:** Any logged-in player who has joined the game can open the Admin section (including Grant TRP Coins) and grant any amount of TRP coins to a specified user; logged-out users still cannot access admin pages.
+**User-visible outcome:** The live game URL loads the most recently deployed version without errors, and core navigation/auth flows work as expected.
